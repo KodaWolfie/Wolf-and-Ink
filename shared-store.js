@@ -179,10 +179,12 @@
     const nextNote = { ...note };
     const idx = store.notes.findIndex(n => n.id === nextNote.id);
     if (idx >= 0) {
+      nextNote.id = store.notes[idx].id;
+      nextNote.createdAt = store.notes[idx].createdAt;
       nextNote.updatedAt = now();
       store.notes[idx] = nextNote;
     } else {
-      if (!nextNote.id) nextNote.id = uid();
+      nextNote.id = uid();
       if (!nextNote.createdAt) nextNote.createdAt = now();
       nextNote.updatedAt = now();
       store.notes.push(nextNote);
