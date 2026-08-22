@@ -8,6 +8,9 @@
  * Shelf shape (beastsLibrary_v1):
  *   { shelves: [{ id, name, desc }] }
  *
+ * Tinker's Nook note shape (tinkersNook_notes_v1):
+ *   { id, color, title, body, createdAt, updatedAt }
+ *
  * Legacy data in beastsLibrary_v1 (stories array) is migrated automatically.
  */
 
@@ -16,6 +19,7 @@
 
   const STORY_KEY = "wolfsInk_stories_v1";
   const SHELF_KEY = "beastsLibrary_v1";
+  const TINKER_KEY = "tinkersNook_notes_v1";
 
   /* ── Helpers ── */
   function uid() {
@@ -49,6 +53,18 @@
 
   function writeShelfStore(store) {
     try { localStorage.setItem(SHELF_KEY, JSON.stringify(store)); } catch (_) {}
+  }
+
+  function readTinkerStore() {
+    try {
+      const raw = localStorage.getItem(TINKER_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return { notes: [] };
+  }
+
+  function writeTinkerStore(store) {
+    try { localStorage.setItem(TINKER_KEY, JSON.stringify(store)); } catch (_) {}
   }
 
   /* ── Migration: move legacy stories from beastsLibrary_v1 into wolfsInk_stories_v1 ── */
@@ -153,6 +169,36 @@
     writeStoryStore(storyStore);
   }
 
+  /* ── Tinker's Nook API ── */
+  function getTinkerNotes() {
+    return readTinkerStore().notes;
+  }
+
+  function getTinkerNote(id) {
+    return readTinkerStore().notes.find(note => note.id === id) || null;
+  }
+
+  function saveTinkerNote(note) {
+    const store = readTinkerStore();
+    const idx = store.notes.findIndex(n => n.id === note.id);
+    note.updatedAt = now();
+    if (idx >= 0) {
+      store.notes[idx] = note;
+    } else {
+      if (!note.id) note.id = uid();
+      if (!note.createdAt) note.createdAt = now();
+      store.notes.push(note);
+    }
+    writeTinkerStore(store);
+    return note;
+  }
+
+  function deleteTinkerNote(id) {
+    const store = readTinkerStore();
+    store.notes = store.notes.filter(note => note.id !== id);
+    writeTinkerStore(store);
+  }
+
   /* ── Cover image: compress via canvas before storing ── */
   function compressCover(dataUrl, callback) {
     if (!dataUrl || !dataUrl.startsWith("data:image/")) {
@@ -189,6 +235,10 @@
     getShelves,
     saveShelf,
     deleteShelf,
+    getTinkerNotes,
+    getTinkerNote,
+    saveTinkerNote,
+    deleteTinkerNote,
     compressCover,
   };
 })(window);
