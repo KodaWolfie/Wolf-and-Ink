@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cover Creation | Wolf & Ink</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Nunito:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --bg: #2f1f17;
+      --bg-soft: #3a271d;
+      --card: #4a3226;
+      --text: #f6e7d8;
+      --muted: #e8cdb2;
+      --accent: #d08c60;
+      --accent-hover: #e5a276;
+      --border: #6b4a38;
+      --danger: #c0524a;
+      --danger-hover: #d96d63;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Nunito", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, #4b2f22 0%, var(--bg) 45%, #23150f 100%);
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1.25rem;
+    }
+
+    .container {
+      width: min(860px, 100%);
+    }
+
+    h1, h2, h3 {
+      font-family: "Cormorant Garamond", serif;
+      letter-spacing: 0.3px;
+      margin: 0;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.25rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .back-link:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    .page-header { margin-bottom: 1.5rem; }
+    .page-title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: #ffd9b8;
+      margin-bottom: 0.3rem;
+    }
+    .page-sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.4vw, 1.1rem);
+      line-height: 1.6;
+    }
+
+    /* ── Story selector bar ── */
+    .story-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(180deg, rgba(74,50,38,.85), rgba(58,39,29,.92));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+    }
+    .story-bar label {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .story-select {
+      flex: 1;
+      min-width: 160px;
+      background: rgba(20,10,6,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Nunito", sans-serif;
+      font-size: 0.95rem;
+      padding: 0.5rem 0.75rem;
+      outline: none;
+      transition: border-color 0.18s;
+      cursor: pointer;
+    }
+    .story-select:focus { border-color: var(--accent); }
+    .story-select option { background: #3a271d; }
+
+    .btn {
+      cursor: pointer;
+      font-family: "Nunito", sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 0.5rem 1.1rem;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+    .btn-ghost:hover { background: rgba(208,140,96,.12); color: var(--accent-hover); border-color: var(--accent); }
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    .btn-danger:hover { background: rgba(192,82,74,.15); color: var(--danger-hover); }
+
+    /* ── Cover workspace ── */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+    }
+    @media (min-width: 640px) {
+      .workspace {
+        grid-template-columns: auto 1fr;
+      }
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(74,50,38,.85), rgba(58,39,29,.92));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.4rem;
+    }
+    .panel-title {
+      font-size: 1.15rem;
+      color: var(--accent-hover);
+      margin-bottom: 0.85rem;
+    }
+
+    /* ── Cover preview ── */
+    .cover-preview-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.9rem;
+    }
+    .cover-frame {
+      width: 200px;
+      height: 300px;
+      background: rgba(20,10,6,.5);
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .cover-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .cover-placeholder {
+      color: var(--muted);
+      opacity: 0.45;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 1rem;
+      pointer-events: none;
+    }
+    .cover-title-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.6rem 0.5rem;
+      background: linear-gradient(transparent, rgba(20,10,6,.8));
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1rem;
+      color: #ffd9b8;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    /* ── Controls ── */
+    .controls-panel {
+      flex: 1;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s;
+      margin-bottom: 1rem;
+    }
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(208,140,96,.06);
+    }
+    .upload-zone p {
+      margin: 0.3rem 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .upload-zone input[type="file"] {
+      display: none;
+    }
+    .upload-icon {
+      font-size: 2rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+
+    .save-status {
+      font-size: 0.82rem;
+      color: var(--muted);
+      opacity: 0.7;
+      margin-top: 0.6rem;
+      min-height: 1.1em;
+    }
+
+    .empty-state {
+      padding: 2.5rem 1rem;
+      text-align: center;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+    .empty-state p { margin: 0.4rem 0; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="index.html">← Back to home</a>
+  <header class="page-header">
+    <h1 class="page-title">Cover Creation</h1>
+    <p class="page-sub">Paint me like one of your French girls. Upload or choose a cover for your story.</p>
+  </header>
+
+  <!-- Story selector bar -->
+  <div class="story-bar">
+    <label for="storySelect">Story:</label>
+    <select id="storySelect" class="story-select">
+      <option value="">— Select a story —</option>
+    </select>
+  </div>
+
+  <!-- Workspace (hidden until story selected) -->
+  <div id="workspace" class="workspace" style="display:none;">
+    <!-- Cover preview -->
+    <div class="panel">
+      <h2 class="panel-title">Preview</h2>
+      <div class="cover-preview-wrap">
+        <div class="cover-frame" id="coverFrame">
+          <div class="cover-placeholder" id="coverPlaceholder">
+            <div class="upload-icon">🖼️</div>
+            <p>No cover yet</p>
+          </div>
+          <img id="coverImg" src="" alt="Cover preview" style="display:none;" />
+          <div class="cover-title-overlay" id="coverTitleOverlay"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="panel controls-panel">
+      <h2 class="panel-title">Upload Cover</h2>
+
+      <div
+        class="upload-zone"
+        id="uploadZone"
+        role="button"
+        tabindex="0"
+        aria-label="Click or drag an image to upload a cover"
+      >
+        <div class="upload-icon">📁</div>
+        <p>Click to browse, or drag an image here</p>
+        <p style="opacity:.55;font-size:.8rem;">JPG, PNG, WEBP — will be resized to 600×900 px</p>
+        <input type="file" id="fileInput" accept="image/*" />
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="saveCoverBtn" disabled>Save Cover</button>
+        <button class="btn btn-danger" id="removeCoverBtn" style="display:none;">Remove Cover</button>
+        <a class="btn btn-ghost" id="writeLink" href="ground-zero.html" style="text-decoration:none;text-align:center;">Write Story →</a>
+      </div>
+      <p class="save-status" id="saveStatus"></p>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div id="emptyState" class="panel empty-state">
+    <p style="font-size:1.5rem;">🖼️</p>
+    <p>Select a story above to manage its cover.</p>
+  </div>
+</div>
+
+<script src="shared-store.js"></script>
+<script>
+  const store = window.WolfInkStore;
+  let currentStory = null;
+  let pendingCoverDataUrl = null;
+
+  /* ── Helpers ── */
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  /* ── Story selector ── */
+  function populateStorySelector(selectId) {
+    const stories = store.getStories();
+    const sel = document.getElementById("storySelect");
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">— Select a story —</option>';
+    stories.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.title;
+      if (s.id === prev) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    if (selectId) sel.value = selectId;
+  }
+
+  function loadStory(id) {
+    if (!id) {
+      currentStory = null;
+      pendingCoverDataUrl = null;
+      document.getElementById("workspace").style.display = "none";
+      document.getElementById("emptyState").style.display = "";
+      return;
+    }
+    const story = store.getStory(id);
+    if (!story) return;
+    currentStory = story;
+    pendingCoverDataUrl = null;
+    document.getElementById("workspace").style.display = "";
+    document.getElementById("emptyState").style.display = "none";
+    document.getElementById("coverTitleOverlay").textContent = story.title;
+    document.getElementById("writeLink").href = `ground-zero.html?id=${encodeURIComponent(id)}`;
+    updateCoverPreview(story.coverImage || null);
+    document.getElementById("saveCoverBtn").disabled = true;
+    document.getElementById("saveStatus").textContent = "";
+  }
+
+  function updateCoverPreview(dataUrl) {
+    const img = document.getElementById("coverImg");
+    const placeholder = document.getElementById("coverPlaceholder");
+    const removeBtn = document.getElementById("removeCoverBtn");
+    const isSafe = dataUrl && dataUrl.startsWith("data:image/");
+    if (isSafe) {
+      img.src = dataUrl;
+      img.style.display = "block";
+      placeholder.style.display = "none";
+      removeBtn.style.display = "";
+    } else {
+      img.src = "";
+      img.style.display = "none";
+      placeholder.style.display = "";
+      removeBtn.style.display = "none";
+    }
+  }
+
+  document.getElementById("storySelect").addEventListener("change", e => {
+    loadStory(e.target.value || null);
+  });
+
+  /* ── File upload ── */
+  function handleFile(file) {
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = function (ev) {
+      store.compressCover(ev.target.result, function (compressed) {
+        pendingCoverDataUrl = compressed;
+        updateCoverPreview(compressed);
+        document.getElementById("saveCoverBtn").disabled = false;
+        document.getElementById("saveStatus").textContent = "Cover ready — click Save to keep it.";
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  const uploadZone = document.getElementById("uploadZone");
+  const fileInput = document.getElementById("fileInput");
+
+  uploadZone.addEventListener("click", () => fileInput.click());
+  uploadZone.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") fileInput.click(); });
+  fileInput.addEventListener("change", () => handleFile(fileInput.files[0]));
+
+  uploadZone.addEventListener("dragover", e => {
+    e.preventDefault();
+    uploadZone.classList.add("drag-over");
+  });
+  uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("drag-over"));
+  uploadZone.addEventListener("drop", e => {
+    e.preventDefault();
+    uploadZone.classList.remove("drag-over");
+    handleFile(e.dataTransfer.files[0]);
+  });
+
+  /* ── Save cover ── */
+  document.getElementById("saveCoverBtn").addEventListener("click", () => {
+    if (!currentStory || !pendingCoverDataUrl) return;
+    currentStory.coverImage = pendingCoverDataUrl;
+    store.saveStory(currentStory);
+    pendingCoverDataUrl = null;
+    document.getElementById("saveCoverBtn").disabled = true;
+    document.getElementById("removeCoverBtn").style.display = "";
+    document.getElementById("saveStatus").textContent = "Cover saved ✓";
+  });
+
+  /* ── Remove cover ── */
+  document.getElementById("removeCoverBtn").addEventListener("click", () => {
+    if (!currentStory) return;
+    if (!confirm("Remove the cover from this story?")) return;
+    currentStory.coverImage = null;
+    store.saveStory(currentStory);
+    pendingCoverDataUrl = null;
+    updateCoverPreview(null);
+    document.getElementById("saveCoverBtn").disabled = true;
+    document.getElementById("saveStatus").textContent = "Cover removed.";
+  });
+
+  /* ── Init: check for ?id= query param ── */
+  function init() {
+    populateStorySelector(null);
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (id) {
+      loadStory(id);
+      document.getElementById("storySelect").value = id;
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

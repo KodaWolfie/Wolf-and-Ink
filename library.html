@@ -249,12 +249,38 @@
     }
     .story-card:hover { border-color: var(--accent); }
 
+    .story-cover-thumb {
+      width: 36px;
+      height: 54px;
+      border-radius: 4px;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .story-cover-placeholder {
+      width: 36px;
+      height: 54px;
+      border-radius: 4px;
+      background: rgba(20,10,6,.4);
+      border: 1px dashed var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      color: var(--muted);
+      opacity: 0.45;
+    }
+
     .story-title {
       flex: 1;
       font-family: "Cormorant Garamond", serif;
       font-size: 1.1rem;
       color: var(--text);
+      text-decoration: none;
     }
+    .story-title:hover { color: var(--accent-hover); }
 
     .story-card-actions {
       display: flex;
@@ -353,33 +379,20 @@
   </div>
 </div>
 
+<script src="shared-store.js"></script>
 <script>
-  /* ─────────────────────────────────────────────
-     Data model (persisted in localStorage)
-     {
-       shelves: [{ id, name, desc }],   // ordered list; "unsorted" is virtual
-       stories: [{ id, title, shelfId }]  // shelfId null = unsorted
-     }
-  ───────────────────────────────────────────── */
-  const STORE_KEY = "beastsLibrary_v1";
+  const store = window.WolfInkStore;
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORE_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch (_) {}
-    return { shelves: [], stories: [] };
-  }
+  /* ─── Compatibility: proxy store so library.html works with unified model ─── */
+  const data = {
+    get shelves() { return store.getShelves(); },
+    get stories() { return store.getStories(); },
+  };
 
-  function save(data) {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch (_) {}
-  }
+  function saveShelf(shelf) { store.saveShelf(shelf); }
+  function saveStory(story) { store.saveStory(story); }
 
-  function uid() {
-    return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-  }
-
-  let data = load();
+  function uid() { return store.uid(); }
 
   /* ─── Render ─── */
   function render() {
@@ -444,9 +457,13 @@
   }
 
   function storyCardHtml(story) {
+    const coverHtml = story.coverImage
+      ? `<img class="story-cover-thumb" src="${escHtml(story.coverImage)}" alt="" />`
+      : `<div class="story-cover-placeholder" aria-hidden="true">📖</div>`;
     return `
       <div class="story-card" data-story-id="${story.id}">
-        <span class="story-title">${escHtml(story.title)}</span>
+        ${coverHtml}
+        <a class="story-title" href="ground-zero.html?id=${encodeURIComponent(story.id)}" title="Write this story">${escHtml(story.title)}</a>
         <div class="story-card-actions">
           <button class="btn btn-ghost move-story-btn" data-id="${story.id}" title="Move to another shelf">Move</button>
           <button class="btn btn-ghost edit-story-btn" data-id="${story.id}" title="Edit story title">Edit</button>
@@ -492,11 +509,10 @@
     const desc = document.getElementById("shelfDescInput").value.trim();
     if (editingShelfId) {
       const shelf = data.shelves.find(s => s.id === editingShelfId);
-      if (shelf) { shelf.name = name; shelf.desc = desc; }
+      if (shelf) { shelf.name = name; shelf.desc = desc; store.saveShelf(shelf); }
     } else {
-      data.shelves.push({ id: uid(), name, desc });
+      store.saveShelf({ id: uid(), name, desc });
     }
-    save(data);
     render();
     closeShelfModal();
   });
@@ -538,11 +554,10 @@
     const shelfId = document.getElementById("storyShelfSelect").value || null;
     if (editingStoryId) {
       const story = data.stories.find(s => s.id === editingStoryId);
-      if (story) { story.title = title; story.shelfId = shelfId; }
+      if (story) { story.title = title; story.shelfId = shelfId; store.saveStory(story); }
     } else {
-      data.stories.push({ id: uid(), title, shelfId });
+      store.createStory(title, shelfId);
     }
-    save(data);
     render();
     closeStoryModal();
   });
@@ -573,7 +588,7 @@
     const story = data.stories.find(s => s.id === movingStoryId);
     if (story) {
       story.shelfId = document.getElementById("moveShelfSelect").value || null;
-      save(data);
+      store.saveStory(story);
       render();
     }
     closeMoveModal();
@@ -593,9 +608,7 @@
       const shelf = data.shelves.find(s => s.id === deleteShelf.dataset.id);
       if (!shelf) return;
       if (!confirm(`Delete shelf "${shelf.name}"? Stories on it will move to Unsorted.`)) return;
-      data.stories.forEach(s => { if (s.shelfId === shelf.id) s.shelfId = null; });
-      data.shelves = data.shelves.filter(s => s.id !== shelf.id);
-      save(data);
+      store.deleteShelf(shelf.id);
       render();
       return;
     }
@@ -615,8 +628,7 @@
       const story = data.stories.find(s => s.id === deleteStory.dataset.id);
       if (!story) return;
       if (!confirm(`Remove "${story.title}" from the library?`)) return;
-      data.stories = data.stories.filter(s => s.id !== deleteStory.dataset.id);
-      save(data);
+      store.deleteStory(deleteStory.dataset.id);
       render();
     }
   });
