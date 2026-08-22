@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tinker’s Nook | Wolf & Ink</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Nunito:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --bg: #2f1f17;
+      --text: #f6e7d8;
+      --muted: #e8cdb2;
+      --accent: #d08c60;
+      --accent-hover: #e5a276;
+      --border: #6b4a38;
+      --board-edge: #8f6843;
+      --note-text: #4f3826;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Nunito", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, #4b2f22 0%, var(--bg) 45%, #23150f 100%);
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1.25rem;
+    }
+
+    .container {
+      width: min(1080px, 100%);
+    }
+
+    h1, h2, h3 {
+      font-family: "Cormorant Garamond", serif;
+      letter-spacing: 0.3px;
+      margin: 0;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.25rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .back-link:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    .page-header {
+      margin-bottom: 1.35rem;
+    }
+
+    .page-title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: #ffd9b8;
+      margin-bottom: 0.3rem;
+    }
+
+    .page-sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.4vw, 1.1rem);
+      line-height: 1.6;
+      max-width: 62ch;
+    }
+
+    .board-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      cursor: pointer;
+      font-family: "Nunito", sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 0.55rem 1.1rem;
+      transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .toolbar-copy {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .board {
+      min-height: 70vh;
+      border-radius: 18px;
+      border: 1px solid rgba(107, 74, 56, 0.9);
+      padding: 1.35rem;
+      box-shadow:
+        inset 0 0 0 6px rgba(76, 48, 30, 0.32),
+        0 18px 40px rgba(0, 0, 0, 0.35);
+      background:
+        radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.1) 0 2px, transparent 2px 100%),
+        radial-gradient(circle at 70% 40%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 100%),
+        linear-gradient(135deg, rgba(255, 236, 204, 0.1), rgba(79, 49, 28, 0.08)),
+        linear-gradient(0deg, rgba(122, 87, 52, 0.9), rgba(150, 111, 70, 0.95));
+      background-size: 120px 120px, 170px 170px, 100% 100%, 100% 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .board::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          25deg,
+          rgba(255, 255, 255, 0.03) 0 4px,
+          rgba(0, 0, 0, 0.02) 4px 8px,
+          transparent 8px 14px
+        );
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .notes-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      align-content: start;
+    }
+
+    .empty-state {
+      position: relative;
+      z-index: 1;
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: rgba(55, 32, 20, 0.8);
+      padding: 3rem 1.25rem;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1.4rem, 3vw, 1.9rem);
+    }
+
+    .empty-state p {
+      max-width: 24ch;
+      margin: 0;
+      background: rgba(248, 229, 196, 0.38);
+      border: 1px dashed rgba(86, 54, 32, 0.45);
+      border-radius: 14px;
+      padding: 1.2rem 1rem;
+      box-shadow: 0 10px 24px rgba(76, 48, 30, 0.16);
+    }
+
+    .note {
+      --note-color: #f8e488;
+      background: var(--note-color);
+      color: var(--note-text);
+      border-radius: 4px 4px 14px 4px;
+      padding: 1rem 0.95rem 0.9rem;
+      min-height: 260px;
+      box-shadow:
+        0 12px 20px rgba(58, 35, 24, 0.22),
+        inset 0 -12px 18px rgba(125, 86, 36, 0.08);
+      border: 1px solid rgba(108, 73, 41, 0.28);
+      position: relative;
+      transform: rotate(var(--note-tilt, 0deg));
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .note::before {
+      content: "";
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: rgba(104, 54, 38, 0.85);
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .note-title,
+    .note-body {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: inherit;
+      font-family: "Nunito", sans-serif;
+    }
+
+    .note-title {
+      margin-top: 0.45rem;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .note-title::placeholder,
+    .note-body::placeholder {
+      color: rgba(79, 56, 38, 0.58);
+    }
+
+    .note-body {
+      flex: 1;
+      resize: none;
+      min-height: 130px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .note-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.78rem;
+      color: rgba(79, 56, 38, 0.82);
+    }
+
+    .note-count.limit {
+      color: #8a2d22;
+      font-weight: 700;
+    }
+
+    .note-remove {
+      background: transparent;
+      border: none;
+      color: rgba(79, 56, 38, 0.82);
+      font: inherit;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+    }
+    .note-remove:hover { color: #8a2d22; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a class="back-link" href="index.html">← Back to home</a>
+
+    <header class="page-header">
+      <h1 class="page-title">Tinker’s Nook</h1>
+      <p class="page-sub">Odds and ends for dreamers who see the possibility in scraps and abandoned treasure.</p>
+    </header>
+
+    <div class="board-toolbar">
+      <button class="btn btn-primary" id="addNoteBtn" aria-label="Add a new sticky note">Pom Pom</button>
+      <span class="toolbar-copy">Pin down a thought, title it, and keep each note body to 15 words.</span>
+    </div>
+
+    <section class="board" aria-label="Tinker’s Nook corkboard">
+      <div class="empty-state" id="emptyState">
+        <p>Press Pom Pom to pin a fresh idea to the board.</p>
+      </div>
+      <div class="notes-grid" id="notesGrid"></div>
+    </section>
+  </div>
+
+  <script src="shared-store.js"></script>
+  <script>
+    const store = window.WolfInkStore;
+    const BODY_WORD_LIMIT = 15;
+    const NOTE_PALETTE = [
+      { fill: "#f8e488", tilt: "-1deg" },
+      { fill: "#f7c9d7", tilt: "1.5deg" },
+      { fill: "#bfe8bb", tilt: "-2deg" },
+      { fill: "#bfe1f8", tilt: "2deg" },
+      { fill: "#e1cdf7", tilt: "-1.5deg" },
+      { fill: "#f8cf9e", tilt: "1deg" }
+    ];
+
+    function countWords(text) {
+      const matches = String(text || "").trim().match(/\S+/g);
+      return matches ? matches.length : 0;
+    }
+
+    function trimToWordLimit(text, limit) {
+      const value = String(text || "");
+      const wordMatcher = /\S+/g;
+      let match;
+      let words = 0;
+      let lastEnd = value.length;
+
+      while ((match = wordMatcher.exec(value))) {
+        words += 1;
+        if (words === limit) {
+          lastEnd = match.index + match[0].length;
+        }
+        if (words > limit) {
+          return value.slice(0, lastEnd).trimEnd();
+        }
+      }
+
+      return value;
+    }
+
+    function getPaletteEntry(index) {
+      return NOTE_PALETTE[((Number(index) % NOTE_PALETTE.length) + NOTE_PALETTE.length) % NOTE_PALETTE.length];
+    }
+
+    function getNextPaletteEntry() {
+      const notes = store.getTinkerNotes();
+      if (!notes.length) return { ...getPaletteEntry(0), index: 0 };
+
+      const lastNote = notes.reduce((latest, note) => {
+        if (!latest) return note;
+        return String(note.createdAt || "") > String(latest.createdAt || "") ? note : latest;
+      }, null);
+      const previousIndex = Number.isInteger(lastNote?.paletteIndex)
+        ? lastNote.paletteIndex
+        : NOTE_PALETTE.findIndex(entry => entry.fill === lastNote.color && entry.tilt === lastNote.tilt);
+      const index = ((previousIndex >= 0 ? previousIndex : 0) + 1) % NOTE_PALETTE.length;
+      return { ...getPaletteEntry(index), index };
+    }
+
+    function createNote() {
+      const paletteEntry = getNextPaletteEntry();
+      const note = store.saveTinkerNote({
+        paletteIndex: paletteEntry.index,
+        color: paletteEntry.fill,
+        tilt: paletteEntry.tilt,
+        title: "",
+        body: ""
+      });
+      renderNotes(note.id);
+    }
+
+    function saveNote(note, titleValue, bodyValue) {
+      const paletteEntry = getPaletteEntry(note.paletteIndex);
+      note.title = titleValue;
+      note.body = trimToWordLimit(bodyValue, BODY_WORD_LIMIT);
+      note.color = paletteEntry.fill;
+      note.tilt = paletteEntry.tilt;
+      store.saveTinkerNote(note);
+      return note.body;
+    }
+
+    function renderNotes(focusNoteId) {
+      const notes = store.getTinkerNotes();
+      const notesGrid = document.getElementById("notesGrid");
+      const emptyState = document.getElementById("emptyState");
+
+      notesGrid.innerHTML = "";
+      emptyState.style.display = notes.length ? "none" : "grid";
+
+      notes.forEach(note => {
+        const paletteEntry = getPaletteEntry(
+          Number.isInteger(note.paletteIndex)
+            ? note.paletteIndex
+            : NOTE_PALETTE.findIndex(entry => entry.fill === note.color && entry.tilt === note.tilt)
+        );
+        const noteEl = document.createElement("article");
+        noteEl.className = "note";
+        noteEl.style.setProperty("--note-color", paletteEntry.fill);
+        noteEl.style.setProperty("--note-tilt", paletteEntry.tilt);
+        noteEl.innerHTML = `
+          <input class="note-title" type="text" placeholder="Title your treasure" aria-label="Sticky note title" />
+          <textarea class="note-body" placeholder="Free-write here…" aria-label="Sticky note body" spellcheck="true"></textarea>
+          <div class="note-footer">
+            <span class="note-count">${countWords(note.body)} / ${BODY_WORD_LIMIT} words</span>
+            <button class="note-remove" type="button">Remove</button>
+          </div>
+        `;
+
+        const titleInput = noteEl.querySelector(".note-title");
+        const bodyInput = noteEl.querySelector(".note-body");
+        const countEl = noteEl.querySelector(".note-count");
+        const removeBtn = noteEl.querySelector(".note-remove");
+        titleInput.value = note.title || "";
+        bodyInput.value = note.body || "";
+        countEl.classList.toggle("limit", countWords(bodyInput.value) >= BODY_WORD_LIMIT);
+
+        function syncNote() {
+          const body = saveNote(note, titleInput.value, bodyInput.value);
+          if (body !== bodyInput.value) bodyInput.value = body;
+          const count = countWords(bodyInput.value);
+          countEl.textContent = `${count} / ${BODY_WORD_LIMIT} words`;
+          countEl.classList.toggle("limit", count >= BODY_WORD_LIMIT);
+        }
+
+        titleInput.addEventListener("input", syncNote);
+        bodyInput.addEventListener("input", syncNote);
+        removeBtn.addEventListener("click", () => {
+          store.deleteTinkerNote(note.id);
+          renderNotes();
+        });
+
+        notesGrid.appendChild(noteEl);
+
+        if (note.id === focusNoteId) {
+          titleInput.focus();
+        }
+      });
+    }
+
+    document.getElementById("addNoteBtn").addEventListener("click", createNote);
+
+    renderNotes();
+  </script>
+</body>
+</html>

@@ -8,6 +8,9 @@
  * Shelf shape (beastsLibrary_v1):
  *   { shelves: [{ id, name, desc }] }
  *
+ * Tinker's Nook note shape (tinkersNook_notes_v1):
+ *   { id, paletteIndex, title, body, createdAt, updatedAt }
+ *
  * Legacy data in beastsLibrary_v1 (stories array) is migrated automatically.
  */
 
@@ -16,6 +19,7 @@
 
   const STORY_KEY = "wolfsInk_stories_v1";
   const SHELF_KEY = "beastsLibrary_v1";
+  const TINKER_KEY = "tinkersNook_notes_v1";
 
   /* ── Helpers ── */
   function uid() {
@@ -49,6 +53,18 @@
 
   function writeShelfStore(store) {
     try { localStorage.setItem(SHELF_KEY, JSON.stringify(store)); } catch (_) {}
+  }
+
+  function readTinkerStore() {
+    try {
+      const raw = localStorage.getItem(TINKER_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return { notes: [] };
+  }
+
+  function writeTinkerStore(store) {
+    try { localStorage.setItem(TINKER_KEY, JSON.stringify(store)); } catch (_) {}
   }
 
   /* ── Migration: move legacy stories from beastsLibrary_v1 into wolfsInk_stories_v1 ── */
@@ -153,6 +169,36 @@
     writeStoryStore(storyStore);
   }
 
+  /* ── Tinker's Nook API ── */
+  function getTinkerNotes() {
+    return readTinkerStore().notes;
+  }
+
+  function saveTinkerNote(note) {
+    const store = readTinkerStore();
+    const nextNote = { ...note };
+    const idx = store.notes.findIndex(n => n.id === nextNote.id);
+    if (idx >= 0) {
+      nextNote.id = store.notes[idx].id;
+      nextNote.createdAt = store.notes[idx].createdAt;
+      nextNote.updatedAt = now();
+      store.notes[idx] = nextNote;
+    } else {
+      nextNote.id = uid();
+      if (!nextNote.createdAt) nextNote.createdAt = now();
+      nextNote.updatedAt = now();
+      store.notes.push(nextNote);
+    }
+    writeTinkerStore(store);
+    return nextNote;
+  }
+
+  function deleteTinkerNote(id) {
+    const store = readTinkerStore();
+    store.notes = store.notes.filter(note => note.id !== id);
+    writeTinkerStore(store);
+  }
+
   /* ── Cover image: compress via canvas before storing ── */
   function compressCover(dataUrl, callback) {
     if (!dataUrl || !dataUrl.startsWith("data:image/")) {
@@ -189,6 +235,9 @@
     getShelves,
     saveShelf,
     deleteShelf,
+    getTinkerNotes,
+    saveTinkerNote,
+    deleteTinkerNote,
     compressCover,
   };
 })(window);
