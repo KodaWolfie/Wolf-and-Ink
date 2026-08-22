@@ -9,7 +9,7 @@
  *   { shelves: [{ id, name, desc }] }
  *
  * Tinker's Nook note shape (tinkersNook_notes_v1):
- *   { id, color, title, body, createdAt, updatedAt }
+ *   { id, paletteIndex, title, body, createdAt, updatedAt }
  *
  * Legacy data in beastsLibrary_v1 (stories array) is migrated automatically.
  */
@@ -180,17 +180,19 @@
 
   function saveTinkerNote(note) {
     const store = readTinkerStore();
-    const idx = store.notes.findIndex(n => n.id === note.id);
-    note.updatedAt = now();
+    const nextNote = { ...note };
+    const idx = store.notes.findIndex(n => n.id === nextNote.id);
     if (idx >= 0) {
-      store.notes[idx] = note;
+      nextNote.updatedAt = now();
+      store.notes[idx] = nextNote;
     } else {
-      if (!note.id) note.id = uid();
-      if (!note.createdAt) note.createdAt = now();
-      store.notes.push(note);
+      if (!nextNote.id) nextNote.id = uid();
+      if (!nextNote.createdAt) nextNote.createdAt = now();
+      nextNote.updatedAt = now();
+      store.notes.push(nextNote);
     }
     writeTinkerStore(store);
-    return note;
+    return nextNote;
   }
 
   function deleteTinkerNote(id) {

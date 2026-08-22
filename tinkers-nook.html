@@ -321,16 +321,29 @@
       return value;
     }
 
+    function getPaletteEntry(index) {
+      return NOTE_PALETTE[((Number(index) % NOTE_PALETTE.length) + NOTE_PALETTE.length) % NOTE_PALETTE.length];
+    }
+
     function getNextPaletteEntry() {
       const notes = store.getTinkerNotes();
-      return NOTE_PALETTE[notes.length % NOTE_PALETTE.length];
+      if (!notes.length) return { ...getPaletteEntry(0), index: 0 };
+
+      const lastNote = notes.reduce((latest, note) => {
+        if (!latest) return note;
+        return String(note.createdAt || "") > String(latest.createdAt || "") ? note : latest;
+      }, null);
+      const previousIndex = Number.isInteger(lastNote && lastNote.paletteIndex)
+        ? lastNote.paletteIndex
+        : NOTE_PALETTE.findIndex(entry => entry.fill === lastNote.color && entry.tilt === lastNote.tilt);
+      const index = ((previousIndex >= 0 ? previousIndex : 0) + 1) % NOTE_PALETTE.length;
+      return { ...getPaletteEntry(index), index };
     }
 
     function createNote() {
       const paletteEntry = getNextPaletteEntry();
       const note = store.saveTinkerNote({
-        color: paletteEntry.fill,
-        tilt: paletteEntry.tilt,
+        paletteIndex: paletteEntry.index,
         title: "",
         body: ""
       });
@@ -353,13 +366,18 @@
       emptyState.style.display = notes.length ? "none" : "grid";
 
       notes.forEach(note => {
+        const paletteEntry = getPaletteEntry(
+          Number.isInteger(note.paletteIndex)
+            ? note.paletteIndex
+            : NOTE_PALETTE.findIndex(entry => entry.fill === note.color && entry.tilt === note.tilt)
+        );
         const noteEl = document.createElement("article");
         noteEl.className = "note";
-        noteEl.style.setProperty("--note-color", note.color || NOTE_PALETTE[0].fill);
-        noteEl.style.setProperty("--note-tilt", note.tilt || "0deg");
+        noteEl.style.setProperty("--note-color", paletteEntry.fill);
+        noteEl.style.setProperty("--note-tilt", paletteEntry.tilt);
         noteEl.innerHTML = `
-          <input class="note-title" type="text" value="${escHtml(note.title || "")}" placeholder="Title your treasure" aria-label="Sticky note title" />
-          <textarea class="note-body" placeholder="Free-write here…" aria-label="Sticky note body" spellcheck="true">${escHtml(note.body || "")}</textarea>
+          <input class="note-title" type="text" placeholder="Title your treasure" aria-label="Sticky note title" />
+          <textarea class="note-body" placeholder="Free-write here…" aria-label="Sticky note body" spellcheck="true"></textarea>
           <div class="note-footer">
             <span class="note-count">${countWords(note.body)} / ${BODY_WORD_LIMIT} words</span>
             <button class="note-remove" type="button">Remove</button>
@@ -370,6 +388,9 @@
         const bodyInput = noteEl.querySelector(".note-body");
         const countEl = noteEl.querySelector(".note-count");
         const removeBtn = noteEl.querySelector(".note-remove");
+        titleInput.value = note.title || "";
+        bodyInput.value = note.body || "";
+        countEl.classList.toggle("limit", countWords(bodyInput.value) >= BODY_WORD_LIMIT);
 
         function syncNote() {
           const body = saveNote(note, titleInput.value, bodyInput.value);
@@ -392,14 +413,6 @@
           titleInput.focus();
         }
       });
-    }
-
-    function escHtml(str) {
-      return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
     }
 
     document.getElementById("addNoteBtn").addEventListener("click", createNote);
