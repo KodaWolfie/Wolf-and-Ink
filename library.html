@@ -82,7 +82,6 @@
     }
     .back-link:hover { color: var(--accent-hover); text-decoration: underline; }
 
-    /* ── Toolbar ── */
     .toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -92,12 +91,16 @@
 
     .btn {
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       font-family: "Nunito", sans-serif;
       font-size: 0.92rem;
       font-weight: 600;
       border-radius: 8px;
       border: 1px solid var(--border);
       padding: 0.5rem 1.1rem;
+      text-decoration: none;
       transition: background 0.18s, border-color 0.18s, color 0.18s;
     }
 
@@ -121,7 +124,6 @@
     }
     .btn-danger:hover { background: rgba(192,82,74,.15); color: var(--danger-hover); }
 
-    /* ── Modal overlay ── */
     .overlay {
       display: none;
       position: fixed;
@@ -177,7 +179,6 @@
     .field select:focus { border-color: var(--accent); }
 
     .field textarea { resize: vertical; min-height: 72px; }
-
     .field select option { background: #3a271d; }
 
     .modal-actions {
@@ -187,7 +188,6 @@
       margin-top: 1.4rem;
     }
 
-    /* ── Shelves ── */
     .shelves { display: grid; gap: 1.6rem; }
 
     .shelf {
@@ -230,7 +230,6 @@
       font-size: 0.82rem;
     }
 
-    /* ── Story cards ── */
     .stories {
       display: grid;
       gap: 0.65rem;
@@ -249,15 +248,33 @@
     }
     .story-card:hover { border-color: var(--accent); }
 
-    .story-title {
+    .story-cover-thumb { width:50px; height:70px; object-fit:cover; border-radius:4px; flex-shrink:0; }
+
+    .story-main {
       flex: 1;
+      min-width: 0;
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .story-title {
       font-family: "Cormorant Garamond", serif;
       font-size: 1.1rem;
       color: var(--text);
+      text-decoration: none;
+    }
+    .story-title:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    .story-shelf-note {
+      color: var(--muted);
+      opacity: 0.8;
+      font-size: 0.82rem;
     }
 
     .story-card-actions {
       display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
       gap: 0.35rem;
       flex-shrink: 0;
     }
@@ -267,7 +284,6 @@
       font-size: 0.8rem;
     }
 
-    /* ── Empty state ── */
     .empty-hint {
       color: var(--muted);
       opacity: 0.55;
@@ -275,13 +291,13 @@
       padding: 0.5rem 0 0.25rem;
     }
 
-    /* ── Unsorted shelf special style ── */
     .shelf-unsorted {
       border-style: dashed;
       border-color: rgba(107,74,56,.6);
     }
     .shelf-unsorted .shelf-name { color: var(--muted); }
   </style>
+  <script src="shared-store.js"></script>
 </head>
 <body>
 <main class="library">
@@ -299,7 +315,6 @@
   <div class="shelves" id="shelvesList" aria-label="Your shelves"></div>
 </main>
 
-<!-- ── Modal: New / Edit Shelf ── -->
 <div class="overlay" id="shelfModal" role="dialog" aria-modal="true" aria-labelledby="shelfModalTitle">
   <div class="modal">
     <h2 id="shelfModalTitle">New Shelf</h2>
@@ -318,7 +333,6 @@
   </div>
 </div>
 
-<!-- ── Modal: Add / Edit Story ── -->
 <div class="overlay" id="storyModal" role="dialog" aria-modal="true" aria-labelledby="storyModalTitle">
   <div class="modal">
     <h2 id="storyModalTitle">Add a Story</h2>
@@ -337,7 +351,6 @@
   </div>
 </div>
 
-<!-- ── Modal: Move Story ── -->
 <div class="overlay" id="moveModal" role="dialog" aria-modal="true" aria-labelledby="moveModalTitle">
   <div class="modal">
     <h2 id="moveModalTitle">Move Story</h2>
@@ -354,49 +367,57 @@
 </div>
 
 <script>
-  /* ─────────────────────────────────────────────
-     Data model (persisted in localStorage)
-     {
-       shelves: [{ id, name, desc }],   // ordered list; "unsorted" is virtual
-       stories: [{ id, title, shelfId }]  // shelfId null = unsorted
-     }
-  ───────────────────────────────────────────── */
-  const STORE_KEY = "beastsLibrary_v1";
+  WolfInkStore.migrateOldStories();
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(STORE_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch (_) {}
-    return { shelves: [], stories: [] };
+  let shelves = WolfInkStore.getShelves();
+  let stories = WolfInkStore.loadStories();
+
+  function refreshData() {
+    shelves = WolfInkStore.getShelves();
+    stories = WolfInkStore.loadStories();
   }
 
-  function save(data) {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch (_) {}
+  function persistShelves() {
+    WolfInkStore.saveShelves(shelves);
   }
 
-  function uid() {
-    return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  function persistStoryRecord(story) {
+    WolfInkStore.saveStory(story);
+    refreshData();
   }
 
-  let data = load();
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
 
-  /* ─── Render ─── */
+  function shelfNameFor(story) {
+    if (!story.shelfId) return "Unsorted";
+    const shelf = shelves.find(function (item) {
+      return item.id === story.shelfId;
+    });
+    return shelf ? shelf.name : "Unsorted";
+  }
+
   function render() {
+    refreshData();
     const container = document.getElementById("shelvesList");
     container.innerHTML = "";
 
-    // User shelves
-    data.shelves.forEach(shelf => {
+    shelves.forEach(function (shelf) {
       container.appendChild(renderShelf(shelf));
     });
 
-    // Unsorted (always last)
     container.appendChild(renderUnsortedShelf());
   }
 
   function renderShelf(shelf) {
-    const stories = data.stories.filter(s => s.shelfId === shelf.id);
+    const shelfStories = stories.filter(function (story) {
+      return story.shelfId === shelf.id;
+    });
     const el = document.createElement("div");
     el.className = "shelf";
     el.dataset.shelfId = shelf.id;
@@ -412,17 +433,19 @@
           <button class="btn btn-danger delete-shelf-btn" data-id="${shelf.id}" title="Delete shelf">Delete</button>
         </div>
       </div>
-      <div class="stories" id="stories-${shelf.id}">
-        ${stories.length === 0
+      <div class="stories">
+        ${shelfStories.length === 0
           ? '<p class="empty-hint">No stories here yet.</p>'
-          : stories.map(s => storyCardHtml(s)).join("")}
+          : shelfStories.map(function (story) { return storyCardHtml(story); }).join("")}
       </div>`;
 
     return el;
   }
 
   function renderUnsortedShelf() {
-    const stories = data.stories.filter(s => !s.shelfId);
+    const unsortedStories = stories.filter(function (story) {
+      return !story.shelfId;
+    });
     const el = document.createElement("div");
     el.className = "shelf shelf-unsorted";
     el.dataset.shelfId = "__unsorted__";
@@ -434,20 +457,29 @@
           <p class="shelf-desc">Stories that haven't found a home yet.</p>
         </div>
       </div>
-      <div class="stories" id="stories-unsorted">
-        ${stories.length === 0
+      <div class="stories">
+        ${unsortedStories.length === 0
           ? '<p class="empty-hint">Nothing here yet — add a story to get started.</p>'
-          : stories.map(s => storyCardHtml(s)).join("")}
+          : unsortedStories.map(function (story) { return storyCardHtml(story); }).join("")}
       </div>`;
 
     return el;
   }
 
   function storyCardHtml(story) {
+    const cover = story.coverImage
+      ? `<img class="story-cover-thumb" src="${story.coverImage}" alt="Cover for ${escHtml(story.title)}">`
+      : "";
+
     return `
       <div class="story-card" data-story-id="${story.id}">
-        <span class="story-title">${escHtml(story.title)}</span>
+        ${cover}
+        <div class="story-main">
+          <a class="story-title" href="ground-zero.html?storyId=${encodeURIComponent(story.id)}">${escHtml(story.title)}</a>
+          <span class="story-shelf-note">${escHtml(shelfNameFor(story))}</span>
+        </div>
         <div class="story-card-actions">
+          <a class="btn btn-primary" href="ground-zero.html?storyId=${encodeURIComponent(story.id)}">Write</a>
           <button class="btn btn-ghost move-story-btn" data-id="${story.id}" title="Move to another shelf">Move</button>
           <button class="btn btn-ghost edit-story-btn" data-id="${story.id}" title="Edit story title">Edit</button>
           <button class="btn btn-danger delete-story-btn" data-id="${story.id}" title="Remove story">Remove</button>
@@ -455,15 +487,6 @@
       </div>`;
   }
 
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
-
-  /* ─── Shelf modal ─── */
   let editingShelfId = null;
 
   function openShelfModal(shelf) {
@@ -480,34 +503,41 @@
     editingShelfId = null;
   }
 
-  document.getElementById("openNewShelfBtn").addEventListener("click", () => openShelfModal(null));
+  document.getElementById("openNewShelfBtn").addEventListener("click", function () { openShelfModal(null); });
   document.getElementById("cancelShelfBtn").addEventListener("click", closeShelfModal);
-  document.getElementById("shelfModal").addEventListener("click", e => {
-    if (e.target === document.getElementById("shelfModal")) closeShelfModal();
+  document.getElementById("shelfModal").addEventListener("click", function (event) {
+    if (event.target === document.getElementById("shelfModal")) closeShelfModal();
   });
 
-  document.getElementById("saveShelfBtn").addEventListener("click", () => {
+  document.getElementById("saveShelfBtn").addEventListener("click", function () {
     const name = document.getElementById("shelfNameInput").value.trim();
-    if (!name) { document.getElementById("shelfNameInput").focus(); return; }
+    if (!name) {
+      document.getElementById("shelfNameInput").focus();
+      return;
+    }
+
     const desc = document.getElementById("shelfDescInput").value.trim();
     if (editingShelfId) {
-      const shelf = data.shelves.find(s => s.id === editingShelfId);
-      if (shelf) { shelf.name = name; shelf.desc = desc; }
+      const shelf = shelves.find(function (item) { return item.id === editingShelfId; });
+      if (shelf) {
+        shelf.name = name;
+        shelf.desc = desc;
+      }
     } else {
-      data.shelves.push({ id: uid(), name, desc });
+      shelves.push({ id: WolfInkStore.uid(), name: name, desc: desc });
     }
-    save(data);
+
+    persistShelves();
     render();
     closeShelfModal();
   });
 
-  /* ─── Story modal ─── */
   let editingStoryId = null;
 
   function buildShelfOptions(selectedId) {
-    const opts = data.shelves.map(s =>
-      `<option value="${s.id}" ${s.id === selectedId ? "selected" : ""}>${escHtml(s.name)}</option>`
-    );
+    const opts = shelves.map(function (shelf) {
+      return `<option value="${shelf.id}" ${shelf.id === selectedId ? "selected" : ""}>${escHtml(shelf.name)}</option>`;
+    });
     opts.unshift(`<option value="" ${!selectedId ? "selected" : ""}>— Unsorted —</option>`);
     return opts.join("");
   }
@@ -526,33 +556,42 @@
     editingStoryId = null;
   }
 
-  document.getElementById("openAddStoryBtn").addEventListener("click", () => openStoryModal(null));
+  document.getElementById("openAddStoryBtn").addEventListener("click", function () { openStoryModal(null); });
   document.getElementById("cancelStoryBtn").addEventListener("click", closeStoryModal);
-  document.getElementById("storyModal").addEventListener("click", e => {
-    if (e.target === document.getElementById("storyModal")) closeStoryModal();
+  document.getElementById("storyModal").addEventListener("click", function (event) {
+    if (event.target === document.getElementById("storyModal")) closeStoryModal();
   });
 
-  document.getElementById("saveStoryBtn").addEventListener("click", () => {
+  document.getElementById("saveStoryBtn").addEventListener("click", function () {
     const title = document.getElementById("storyTitleInput").value.trim();
-    if (!title) { document.getElementById("storyTitleInput").focus(); return; }
-    const shelfId = document.getElementById("storyShelfSelect").value || null;
-    if (editingStoryId) {
-      const story = data.stories.find(s => s.id === editingStoryId);
-      if (story) { story.title = title; story.shelfId = shelfId; }
-    } else {
-      data.stories.push({ id: uid(), title, shelfId });
+    if (!title) {
+      document.getElementById("storyTitleInput").focus();
+      return;
     }
-    save(data);
+
+    const shelfId = document.getElementById("storyShelfSelect").value || null;
+    const existing = editingStoryId ? WolfInkStore.getStory(editingStoryId) : null;
+    persistStoryRecord({
+      id: existing ? existing.id : WolfInkStore.uid(),
+      title: title,
+      shelfId: shelfId,
+      manuscript: existing ? existing.manuscript : "",
+      notes: existing ? existing.notes : "",
+      coverImage: existing ? existing.coverImage : null,
+      createdAt: existing ? existing.createdAt : new Date().toISOString(),
+      updatedAt: existing ? existing.updatedAt : new Date().toISOString()
+    });
+
     render();
     closeStoryModal();
   });
 
-  /* ─── Move modal ─── */
   let movingStoryId = null;
 
   function openMoveModal(storyId) {
     movingStoryId = storyId;
-    const story = data.stories.find(s => s.id === storyId);
+    const story = WolfInkStore.getStory(storyId);
+    if (!story) return;
     document.getElementById("moveStoryName").textContent = `"${story.title}"`;
     document.getElementById("moveShelfSelect").innerHTML = buildShelfOptions(story.shelfId);
     document.getElementById("moveModal").classList.add("open");
@@ -565,71 +604,78 @@
   }
 
   document.getElementById("cancelMoveBtn").addEventListener("click", closeMoveModal);
-  document.getElementById("moveModal").addEventListener("click", e => {
-    if (e.target === document.getElementById("moveModal")) closeMoveModal();
+  document.getElementById("moveModal").addEventListener("click", function (event) {
+    if (event.target === document.getElementById("moveModal")) closeMoveModal();
   });
 
-  document.getElementById("confirmMoveBtn").addEventListener("click", () => {
-    const story = data.stories.find(s => s.id === movingStoryId);
+  document.getElementById("confirmMoveBtn").addEventListener("click", function () {
+    const story = WolfInkStore.getStory(movingStoryId);
     if (story) {
-      story.shelfId = document.getElementById("moveShelfSelect").value || null;
-      save(data);
+      persistStoryRecord({
+        ...story,
+        shelfId: document.getElementById("moveShelfSelect").value || null
+      });
       render();
     }
     closeMoveModal();
   });
 
-  /* ─── Delegated clicks on shelves list ─── */
-  document.getElementById("shelvesList").addEventListener("click", e => {
-    const editShelf = e.target.closest(".edit-shelf-btn");
+  document.getElementById("shelvesList").addEventListener("click", function (event) {
+    const editShelf = event.target.closest(".edit-shelf-btn");
     if (editShelf) {
-      const shelf = data.shelves.find(s => s.id === editShelf.dataset.id);
+      const shelf = shelves.find(function (item) { return item.id === editShelf.dataset.id; });
       if (shelf) openShelfModal(shelf);
       return;
     }
 
-    const deleteShelf = e.target.closest(".delete-shelf-btn");
-    if (deleteShelf) {
-      const shelf = data.shelves.find(s => s.id === deleteShelf.dataset.id);
+    const deleteShelfBtn = event.target.closest(".delete-shelf-btn");
+    if (deleteShelfBtn) {
+      const shelf = shelves.find(function (item) { return item.id === deleteShelfBtn.dataset.id; });
       if (!shelf) return;
       if (!confirm(`Delete shelf "${shelf.name}"? Stories on it will move to Unsorted.`)) return;
-      data.stories.forEach(s => { if (s.shelfId === shelf.id) s.shelfId = null; });
-      data.shelves = data.shelves.filter(s => s.id !== shelf.id);
-      save(data);
+
+      WolfInkStore.loadStories().forEach(function (story) {
+        if (story.shelfId === shelf.id) {
+          WolfInkStore.saveStory({ ...story, shelfId: null });
+        }
+      });
+
+      shelves = shelves.filter(function (item) { return item.id !== shelf.id; });
+      persistShelves();
       render();
       return;
     }
 
-    const moveStory = e.target.closest(".move-story-btn");
-    if (moveStory) { openMoveModal(moveStory.dataset.id); return; }
+    const moveStoryBtn = event.target.closest(".move-story-btn");
+    if (moveStoryBtn) {
+      openMoveModal(moveStoryBtn.dataset.id);
+      return;
+    }
 
-    const editStory = e.target.closest(".edit-story-btn");
-    if (editStory) {
-      const story = data.stories.find(s => s.id === editStory.dataset.id);
+    const editStoryBtn = event.target.closest(".edit-story-btn");
+    if (editStoryBtn) {
+      const story = WolfInkStore.getStory(editStoryBtn.dataset.id);
       if (story) openStoryModal(story);
       return;
     }
 
-    const deleteStory = e.target.closest(".delete-story-btn");
-    if (deleteStory) {
-      const story = data.stories.find(s => s.id === deleteStory.dataset.id);
+    const deleteStoryBtn = event.target.closest(".delete-story-btn");
+    if (deleteStoryBtn) {
+      const story = WolfInkStore.getStory(deleteStoryBtn.dataset.id);
       if (!story) return;
       if (!confirm(`Remove "${story.title}" from the library?`)) return;
-      data.stories = data.stories.filter(s => s.id !== deleteStory.dataset.id);
-      save(data);
+      WolfInkStore.deleteStory(story.id);
       render();
     }
   });
 
-  /* ─── Keyboard: close modals on Escape ─── */
-  document.addEventListener("keydown", e => {
-    if (e.key !== "Escape") return;
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") return;
     if (document.getElementById("shelfModal").classList.contains("open")) closeShelfModal();
     if (document.getElementById("storyModal").classList.contains("open")) closeStoryModal();
     if (document.getElementById("moveModal").classList.contains("open")) closeMoveModal();
   });
 
-  /* ─── Initial render ─── */
   render();
 </script>
 </body>

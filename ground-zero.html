@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ground Zero | Wolf & Ink</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Nunito:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg: #2f1f17;
+      --bg-soft: #3a271d;
+      --card: #4a3226;
+      --text: #f6e7d8;
+      --muted: #e8cdb2;
+      --accent: #d08c60;
+      --accent-hover: #e5a276;
+      --border: #6b4a38;
+      --danger: #c0524a;
+      --danger-hover: #d96d63;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Nunito", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #4b2f22 0%, var(--bg) 45%, #23150f 100%);
+      padding: 3rem 1.25rem;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      letter-spacing: 0.3px;
+    }
+
+    .page {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(74,50,38,.85), rgba(58,39,29,.92));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 2.2rem 1.4rem;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      backdrop-filter: blur(2px);
+    }
+
+    @media (min-width: 700px) {
+      .page { padding: 2.8rem; }
+    }
+
+    .back-link,
+    .nav-link {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .back-link:hover,
+    .nav-link:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+
+    .page-title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: #ffd9b8;
+      margin-bottom: 0.4rem;
+    }
+
+    .page-sub {
+      margin: 0 0 2rem;
+      font-size: clamp(1rem, 2.4vw, 1.15rem);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      align-items: end;
+    }
+
+    .field { display: grid; gap: 0.35rem; }
+    .field label {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      background: rgba(20,10,6,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Nunito", sans-serif;
+      font-size: 0.95rem;
+      padding: 0.65rem 0.8rem;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: var(--accent);
+    }
+
+    .field textarea { resize: vertical; min-height: 120px; }
+    .field select option { background: #3a271d; }
+
+    .btn {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Nunito", sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 0.6rem 1.1rem;
+      text-decoration: none;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+    .btn-ghost:hover { background: rgba(208,140,96,.12); color: var(--accent-hover); border-color: var(--accent); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    .btn-danger:hover { background: rgba(192,82,74,.15); color: var(--danger-hover); }
+
+    .layout {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 900px) {
+      .layout {
+        grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
+        align-items: start;
+      }
+    }
+
+    .panel {
+      background: rgba(32,19,13,.35);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.2rem;
+    }
+
+    .editor-panel {
+      min-height: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .story-select-wrap {
+      min-width: min(320px, 100%);
+      flex: 1;
+    }
+
+    .empty-state {
+      flex: 1;
+      min-height: 340px;
+      border: 1px dashed rgba(232,205,178,.35);
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .editor-fields {
+      display: none;
+      flex: 1;
+      gap: 1rem;
+      flex-direction: column;
+    }
+
+    .editor-fields.active { display: flex; }
+
+    .editor-fields .field,
+    .editor-fields textarea {
+      flex: 1;
+    }
+
+    #manuscriptInput {
+      min-height: 420px;
+      line-height: 1.6;
+    }
+
+    .sidebar {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .meta-card {
+      background: rgba(58,39,29,.55);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem;
+    }
+
+    .story-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .story-heading h2 {
+      font-size: 1.6rem;
+      color: #ffd9b8;
+    }
+
+    .story-meta-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .story-meta-value {
+      margin: 0;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .stat-grid {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .nav-links {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,10,6,.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .overlay.open { display: flex; }
+
+    .modal {
+      background: linear-gradient(160deg, #4a3226, #3a271d);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem;
+      width: min(440px, 100%);
+      box-shadow: 0 20px 50px rgba(0,0,0,.5);
+    }
+
+    .modal h2 {
+      font-size: 1.7rem;
+      color: #ffd9b8;
+      margin-bottom: 1.2rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.6rem;
+      margin-top: 1.4rem;
+    }
+  </style>
+  <script src="shared-store.js"></script>
+</head>
+<body>
+  <main class="page">
+    <a class="back-link" href="index.html">← Back to home</a>
+    <header>
+      <h1 class="page-title">Ground Zero</h1>
+      <p class="page-sub">Crack your knuckles, Timmy! We got a blank page for you, Hero!</p>
+    </header>
+
+    <div class="toolbar">
+      <div class="field story-select-wrap">
+        <label for="storySelect">Current story</label>
+        <select id="storySelect">
+          <option value="">— Select a story —</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="newStoryBtn">+ New Story</button>
+    </div>
+
+    <div class="layout">
+      <section class="panel editor-panel">
+        <div class="empty-state" id="emptyState">Select a story or create a new one to begin writing.</div>
+        <div class="editor-fields" id="editorFields">
+          <div class="field" style="flex:1;">
+            <label for="manuscriptInput">Manuscript</label>
+            <textarea id="manuscriptInput" placeholder="Start writing your story here..."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="meta-card">
+          <div class="story-heading">
+            <div>
+              <span class="story-meta-label">Story title</span>
+              <h2 id="storyTitleDisplay">No story selected</h2>
+            </div>
+            <button class="btn btn-ghost" id="editStoryBtn" type="button" disabled>Edit</button>
+          </div>
+
+          <div class="stat-grid">
+            <div>
+              <span class="story-meta-label">Current shelf</span>
+              <p class="story-meta-value" id="storyShelfDisplay">—</p>
+            </div>
+
+            <div class="field">
+              <label for="notesInput">Notes</label>
+              <textarea id="notesInput" placeholder="Plot twists, reminders, snippets..." disabled></textarea>
+            </div>
+
+            <div>
+              <span class="story-meta-label">Character count</span>
+              <p class="story-meta-value" id="characterCount">0</p>
+            </div>
+
+            <div>
+              <span class="story-meta-label">Last saved</span>
+              <p class="story-meta-value" id="lastSaved">Not yet</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="meta-card">
+          <span class="story-meta-label">Keep wandering</span>
+          <nav class="nav-links">
+            <a class="nav-link" href="library.html">← Library</a>
+            <a class="nav-link" href="cover-creation.html">Cover Creation →</a>
+            <a class="nav-link" href="index.html">← Home</a>
+          </nav>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="overlay" id="storyModal" role="dialog" aria-modal="true" aria-labelledby="storyModalTitle">
+    <div class="modal">
+      <h2 id="storyModalTitle">New Story</h2>
+      <div class="field">
+        <label for="storyTitleInput">Story title <span aria-hidden="true">*</span></label>
+        <input id="storyTitleInput" type="text" maxlength="120" placeholder="The name of your story" />
+      </div>
+      <div class="field">
+        <label for="storyShelfSelect">Shelf</label>
+        <select id="storyShelfSelect"></select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="cancelStoryBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="saveStoryBtn" type="button">Save Story</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    WolfInkStore.migrateOldStories();
+
+    const storySelect = document.getElementById("storySelect");
+    const manuscriptInput = document.getElementById("manuscriptInput");
+    const notesInput = document.getElementById("notesInput");
+    const editorFields = document.getElementById("editorFields");
+    const emptyState = document.getElementById("emptyState");
+    const storyTitleDisplay = document.getElementById("storyTitleDisplay");
+    const storyShelfDisplay = document.getElementById("storyShelfDisplay");
+    const characterCount = document.getElementById("characterCount");
+    const lastSaved = document.getElementById("lastSaved");
+    const editStoryBtn = document.getElementById("editStoryBtn");
+
+    let stories = [];
+    let shelves = [];
+    let currentStoryId = "";
+    let isDirty = false;
+    let modalStoryId = null;
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function formatTimestamp(value) {
+      if (!value) return "Not yet";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "Not yet";
+      return date.toLocaleString([], {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    function getShelfName(shelfId) {
+      if (!shelfId) return "Unsorted";
+      const shelf = shelves.find(function (item) {
+        return item.id === shelfId;
+      });
+      return shelf ? shelf.name : "Unsorted";
+    }
+
+    function getCurrentStory() {
+      return currentStoryId ? WolfInkStore.getStory(currentStoryId) : null;
+    }
+
+    function refreshData() {
+      shelves = WolfInkStore.getShelves();
+      stories = WolfInkStore.loadStories().sort(function (a, b) {
+        return a.title.localeCompare(b.title);
+      });
+    }
+
+    function buildStoryOptions() {
+      return ['<option value="">— Select a story —</option>']
+        .concat(stories.map(function (story) {
+          return '<option value="' + story.id + '">' + escHtml(story.title) + "</option>";
+        }))
+        .join("");
+    }
+
+    function buildShelfOptions(selectedId) {
+      const options = shelves.map(function (shelf) {
+        return '<option value="' + shelf.id + '"' + (shelf.id === selectedId ? " selected" : "") + ">" + escHtml(shelf.name) + "</option>";
+      });
+      options.unshift('<option value=""' + (!selectedId ? " selected" : "") + ">— Unsorted —</option>");
+      return options.join("");
+    }
+
+    function renderStorySelect() {
+      const previousValue = currentStoryId;
+      storySelect.innerHTML = buildStoryOptions();
+      storySelect.value = stories.some(function (story) { return story.id === previousValue; }) ? previousValue : "";
+      currentStoryId = storySelect.value;
+    }
+
+    function setDirty(nextDirty) {
+      isDirty = nextDirty;
+    }
+
+    function updateCharacterCount() {
+      characterCount.textContent = String(manuscriptInput.value.length);
+    }
+
+    function toggleEditor(hasStory) {
+      editorFields.classList.toggle("active", hasStory);
+      emptyState.style.display = hasStory ? "none" : "grid";
+      manuscriptInput.disabled = !hasStory;
+      notesInput.disabled = !hasStory;
+      editStoryBtn.disabled = !hasStory;
+    }
+
+    function renderCurrentStory() {
+      const story = getCurrentStory();
+      toggleEditor(Boolean(story));
+
+      if (!story) {
+        manuscriptInput.value = "";
+        notesInput.value = "";
+        storyTitleDisplay.textContent = "No story selected";
+        storyShelfDisplay.textContent = "—";
+        lastSaved.textContent = "Not yet";
+        updateCharacterCount();
+        setDirty(false);
+        return;
+      }
+
+      manuscriptInput.value = story.manuscript || "";
+      notesInput.value = story.notes || "";
+      storyTitleDisplay.textContent = story.title;
+      storyShelfDisplay.textContent = getShelfName(story.shelfId);
+      lastSaved.textContent = formatTimestamp(story.updatedAt);
+      updateCharacterCount();
+      setDirty(false);
+    }
+
+    function persistCurrentStory() {
+      const story = getCurrentStory();
+      if (!story || !isDirty) return;
+
+      const saved = WolfInkStore.saveStory({
+        ...story,
+        manuscript: manuscriptInput.value,
+        notes: notesInput.value
+      });
+
+      refreshData();
+      if (saved) {
+        currentStoryId = saved.id;
+      }
+      renderStorySelect();
+      renderCurrentStory();
+    }
+
+    function openStoryModal(story) {
+      modalStoryId = story ? story.id : null;
+      document.getElementById("storyModalTitle").textContent = story ? "Edit Story" : "New Story";
+      document.getElementById("storyTitleInput").value = story ? story.title : "";
+      document.getElementById("storyShelfSelect").innerHTML = buildShelfOptions(story ? story.shelfId : null);
+      document.getElementById("storyModal").classList.add("open");
+      document.getElementById("storyTitleInput").focus();
+    }
+
+    function closeStoryModal() {
+      document.getElementById("storyModal").classList.remove("open");
+      modalStoryId = null;
+    }
+
+    document.getElementById("newStoryBtn").addEventListener("click", function () {
+      openStoryModal(null);
+    });
+
+    editStoryBtn.addEventListener("click", function () {
+      const story = getCurrentStory();
+      if (story) openStoryModal(story);
+    });
+
+    document.getElementById("cancelStoryBtn").addEventListener("click", closeStoryModal);
+    document.getElementById("storyModal").addEventListener("click", function (event) {
+      if (event.target === document.getElementById("storyModal")) closeStoryModal();
+    });
+
+    document.getElementById("saveStoryBtn").addEventListener("click", function () {
+      const title = document.getElementById("storyTitleInput").value.trim();
+      if (!title) {
+        document.getElementById("storyTitleInput").focus();
+        return;
+      }
+
+      const shelfId = document.getElementById("storyShelfSelect").value || null;
+      const existing = modalStoryId ? WolfInkStore.getStory(modalStoryId) : null;
+      const story = WolfInkStore.saveStory({
+        id: existing ? existing.id : WolfInkStore.uid(),
+        title: title,
+        shelfId: shelfId,
+        manuscript: existing ? existing.manuscript : "",
+        notes: existing ? existing.notes : "",
+        coverImage: existing ? existing.coverImage : null,
+        createdAt: existing ? existing.createdAt : new Date().toISOString(),
+        updatedAt: existing ? existing.updatedAt : new Date().toISOString()
+      });
+
+      refreshData();
+      currentStoryId = story ? story.id : "";
+      renderStorySelect();
+      renderCurrentStory();
+      closeStoryModal();
+    });
+
+    storySelect.addEventListener("change", function () {
+      persistCurrentStory();
+      currentStoryId = storySelect.value;
+      renderCurrentStory();
+    });
+
+    manuscriptInput.addEventListener("input", function () {
+      updateCharacterCount();
+      setDirty(true);
+    });
+
+    notesInput.addEventListener("input", function () {
+      setDirty(true);
+    });
+
+    manuscriptInput.addEventListener("blur", persistCurrentStory);
+    notesInput.addEventListener("blur", persistCurrentStory);
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) persistCurrentStory();
+    });
+
+    window.addEventListener("beforeunload", persistCurrentStory);
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && document.getElementById("storyModal").classList.contains("open")) {
+        closeStoryModal();
+      }
+    });
+
+    setInterval(function () {
+      persistCurrentStory();
+    }, 5000);
+
+    refreshData();
+    renderStorySelect();
+
+    const urlStoryId = new URLSearchParams(window.location.search).get("storyId");
+    if (urlStoryId && stories.some(function (story) { return story.id === urlStoryId; })) {
+      currentStoryId = urlStoryId;
+      storySelect.value = urlStoryId;
+    }
+
+    renderCurrentStory();
+  </script>
+</body>
+</html>
