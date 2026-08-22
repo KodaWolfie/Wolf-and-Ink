@@ -141,83 +141,251 @@
     }
     .btn-danger:hover { background: rgba(192,82,74,.15); color: var(--danger-hover); }
 
-    /* ── Writing workspace ── */
-    .workspace {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.2rem;
+    /* ── Main writing workspace layout ── */
+    .workspace-wrap {
+      position: relative;
     }
 
-    @media (min-width: 700px) {
-      .workspace {
-        grid-template-columns: 3fr 1fr;
-        align-items: start;
-      }
-    }
-
-    .panel {
-      background: linear-gradient(180deg, rgba(74,50,38,.85), rgba(58,39,29,.92));
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.4rem;
-    }
-
-    .panel-title {
-      font-size: 1.15rem;
-      color: var(--accent-hover);
+    .workspace-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 0.85rem;
     }
 
-    /* Sidebar panels get slightly reduced padding and heading scale */
-    .sidebar .panel {
-      padding: 1rem 1.1rem;
+    .workspace-toolbar h2 {
+      font-size: 1.35rem;
+      color: var(--accent-hover);
     }
-    .sidebar .panel-title {
-      font-size: 0.98rem;
+
+    .toolbar-right {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* ── Dual-page manuscript container ── */
+    .manuscript-viewport {
+      background: linear-gradient(180deg, rgba(74,50,38,.85), rgba(58,39,29,.92));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.4rem 1.4rem 0.6rem;
+      overflow: hidden;
+    }
+
+    .pages-outer {
+      /* Horizontal scroll container for dual → focus transitions */
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pages-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      transition: transform 0.4s cubic-bezier(.4,0,.2,1), opacity 0.3s ease;
+    }
+
+    /* Focus mode: one page takes full width */
+    .pages-row.focus-left .page-card:nth-child(2) {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.88) translateX(40px);
+    }
+    .pages-row.focus-left .page-card:nth-child(1) {
+      grid-column: span 2;
+      transform: scale(1.02);
+    }
+    .pages-row.focus-right .page-card:nth-child(1) {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.88) translateX(-40px);
+    }
+    .pages-row.focus-right .page-card:nth-child(2) {
+      grid-column: span 2;
+      transform: scale(1.02);
+    }
+
+    /* Individual page card */
+    .page-card {
+      background: rgba(20,10,6,.45);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.38s ease, transform 0.38s cubic-bezier(.4,0,.2,1), grid-column 0.38s ease;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    .page-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.85rem 0.4rem;
+      border-bottom: 1px solid rgba(107,74,56,.4);
+    }
+
+    .page-label {
+      font-size: 0.78rem;
       color: var(--muted);
-      margin-bottom: 0.65rem;
+      opacity: 0.65;
+      font-family: "Cormorant Garamond", serif;
+      letter-spacing: 0.5px;
     }
 
-    .manuscript-area {
-      width: 100%;
-      min-height: 600px;
-      background: rgba(20,10,6,.4);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+    .page-focus-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      border-radius: 6px;
+      font-size: 0.72rem;
+      padding: 0.2rem 0.5rem;
+      cursor: pointer;
+      opacity: 0.55;
+      font-family: "Nunito", sans-serif;
+      transition: opacity 0.18s, border-color 0.18s, color 0.18s;
+      white-space: nowrap;
+    }
+    .page-focus-btn:hover {
+      opacity: 1;
+      border-color: var(--accent);
+      color: var(--accent-hover);
+    }
+    .page-focus-btn.active {
+      opacity: 1;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Page textarea — fixed height for hard page breaks */
+    .page-textarea {
+      /* ~600px of visible text area; overflow hidden forces text to the next page */
+      height: 520px;
+      overflow: hidden;
+      resize: none;
+      background: transparent;
+      border: none;
+      outline: none;
       color: var(--text);
       font-family: "Nunito", sans-serif;
-      font-size: 1rem;
+      font-size: 0.97rem;
       line-height: 1.75;
-      padding: 0.75rem 1rem;
-      resize: vertical;
-      outline: none;
-      transition: border-color 0.18s;
-    }
-    .manuscript-area:focus { border-color: var(--accent); }
-
-    .notes-area {
+      padding: 0.7rem 0.9rem;
       width: 100%;
-      min-height: 160px;
-      background: rgba(20,10,6,.4);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: "Nunito", sans-serif;
-      font-size: 0.93rem;
-      line-height: 1.6;
-      padding: 0.65rem 0.85rem;
-      resize: vertical;
-      outline: none;
-      transition: border-color 0.18s;
     }
-    .notes-area:focus { border-color: var(--accent); }
+
+    /* When focused, allow scrolling within the enlarged card */
+    .focus-active .page-textarea {
+      overflow-y: auto;
+    }
+
+    .page-footer {
+      padding: 0.4rem 0.85rem 0.5rem;
+      text-align: center;
+      border-top: 1px solid rgba(107,74,56,.3);
+      font-size: 0.73rem;
+      color: var(--muted);
+      opacity: 0.55;
+      font-family: "Cormorant Garamond", serif;
+    }
+
+    /* ── Page navigation bar ── */
+    .page-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 0.75rem 0 0.3rem;
+      margin-top: 0.5rem;
+    }
+
+    .page-nav-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 0.35rem 0.9rem;
+      font-family: "Nunito", sans-serif;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, border-color 0.18s;
+    }
+    .page-nav-btn:hover:not(:disabled) {
+      background: rgba(208,140,96,.12);
+      color: var(--accent-hover);
+      border-color: var(--accent);
+    }
+    .page-nav-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .page-indicator {
+      font-size: 0.85rem;
+      color: var(--muted);
+      opacity: 0.8;
+      min-width: 90px;
+      text-align: center;
+    }
 
     .save-status {
       font-size: 0.82rem;
       color: var(--muted);
       opacity: 0.7;
-      margin-top: 0.5rem;
+      margin-top: 0.4rem;
       min-height: 1.1em;
+      text-align: right;
+    }
+
+    /* ── Overlay sidebar ── */
+    .sidebar-overlay-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,10,6,.45);
+      z-index: 200;
+    }
+    .sidebar-overlay-backdrop.open { display: block; }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(360px, 92vw);
+      background: linear-gradient(160deg, #4a3226, #3a271d);
+      border-left: 1px solid var(--border);
+      box-shadow: -8px 0 40px rgba(0,0,0,.45);
+      z-index: 201;
+      overflow-y: auto;
+      padding: 1.5rem 1.3rem;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+    }
+    .sidebar-overlay.open { transform: translateX(0); }
+
+    .sidebar-close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 0.3rem 0.7rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-family: "Nunito", sans-serif;
+      transition: background 0.18s, color 0.18s;
+    }
+    .sidebar-close-btn:hover { background: rgba(208,140,96,.12); color: var(--accent-hover); }
+
+    .sidebar-overlay .panel-title {
+      font-size: 1.15rem;
+      color: var(--accent-hover);
+      margin-bottom: 0.85rem;
+      margin-top: 0.2rem;
+      font-family: "Cormorant Garamond", serif;
     }
 
     .meta-field {
@@ -256,12 +424,39 @@
       text-align: center;
     }
 
+    .notes-area {
+      width: 100%;
+      min-height: 160px;
+      background: rgba(20,10,6,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Nunito", sans-serif;
+      font-size: 0.93rem;
+      line-height: 1.6;
+      padding: 0.65rem 0.85rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .notes-area:focus { border-color: var(--accent); }
+
+    .sidebar-section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1.2rem 0;
+      opacity: 0.4;
+    }
+
     /* ── Empty state ── */
     .empty-state {
       padding: 2.5rem 1rem;
       text-align: center;
       color: var(--muted);
       opacity: 0.7;
+      background: linear-gradient(180deg, rgba(74,50,38,.85), rgba(58,39,29,.92));
+      border: 1px solid var(--border);
+      border-radius: 14px;
     }
     .empty-state p { margin: 0.4rem 0; }
 
@@ -271,7 +466,7 @@
       position: fixed;
       inset: 0;
       background: rgba(20,10,6,.7);
-      z-index: 100;
+      z-index: 300;
       align-items: center;
       justify-content: center;
       padding: 1rem;
@@ -321,6 +516,14 @@
       gap: 0.6rem;
       margin-top: 1.4rem;
     }
+
+    @media (max-width: 700px) {
+      .pages-row { grid-template-columns: 1fr; }
+      .pages-row.focus-left .page-card:nth-child(1),
+      .pages-row.focus-right .page-card:nth-child(2) {
+        grid-column: span 1;
+      }
+    }
   </style>
 </head>
 <body>
@@ -341,54 +544,74 @@
   </div>
 
   <!-- Writing workspace (hidden until a story is selected) -->
-  <div id="workspace" class="workspace" style="display:none;">
-    <!-- Manuscript column -->
-    <div class="panel">
-      <h2 class="panel-title" id="manuscriptTitle">Manuscript</h2>
-      <textarea
-        id="manuscriptArea"
-        class="manuscript-area"
-        placeholder="Write your story here… It auto-saves as you type."
-      ></textarea>
-      <p class="save-status" id="saveStatus"></p>
+  <div id="workspace" class="workspace-wrap" style="display:none;">
+
+    <!-- Toolbar row: title + Story Details toggle -->
+    <div class="workspace-toolbar">
+      <h2 id="manuscriptTitle">Manuscript</h2>
+      <div class="toolbar-right">
+        <button class="btn btn-ghost" id="detailsToggleBtn">📋 Story Details</button>
+      </div>
     </div>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="panel" style="margin-bottom:1.2rem;">
-        <h2 class="panel-title">Story Details</h2>
-        <div class="meta-field">
-          <label for="storyTitleInput">Title</label>
-          <input id="storyTitleInput" class="meta-input" type="text" maxlength="120" placeholder="Story title" />
-        </div>
-        <div class="meta-field">
-          <label for="storyShelfSelect">Shelf</label>
-          <select id="storyShelfSelect" class="meta-input"></select>
-        </div>
-        <div class="sidebar-actions">
-          <button class="btn btn-primary" id="saveMetaBtn">Save Details</button>
-          <a class="btn btn-ghost" id="coverLink" href="cover-creation.html" style="text-decoration:none;text-align:center;">Edit Cover →</a>
-          <button class="btn btn-danger" id="deleteStoryBtn">Delete Story</button>
+    <!-- Dual-page manuscript viewport -->
+    <div class="manuscript-viewport">
+      <div class="pages-outer" id="pagesOuter">
+        <div class="pages-row" id="pagesRow">
+          <!-- Page cards rendered by JS -->
         </div>
       </div>
 
-      <div class="panel">
-        <h2 class="panel-title">Notes</h2>
-        <textarea
-          id="notesArea"
-          class="notes-area"
-          placeholder="Jot down ideas, reminders, or plot threads…"
-        ></textarea>
+      <!-- Page navigation -->
+      <div class="page-nav" id="pageNav">
+        <button class="page-nav-btn" id="prevPagesBtn">← Prev</button>
+        <span class="page-indicator" id="pageIndicator">Page 1 of 1</span>
+        <button class="page-nav-btn" id="nextPagesBtn">Next →</button>
       </div>
     </div>
+
+    <p class="save-status" id="saveStatus"></p>
   </div>
 
   <!-- Empty state shown when no story selected -->
-  <div id="emptyState" class="panel empty-state">
+  <div id="emptyState" class="empty-state">
     <p style="font-size:1.5rem;">🐺</p>
     <p>Select a story above or create a new one to start writing.</p>
   </div>
 </div>
+
+<!-- ── Overlay sidebar backdrop ── -->
+<div class="sidebar-overlay-backdrop" id="sidebarBackdrop"></div>
+
+<!-- ── Overlay sidebar: Story Details + Notes ── -->
+<aside class="sidebar-overlay" id="sidebarOverlay" aria-label="Story Details">
+  <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">✕</button>
+
+  <h2 class="panel-title">Story Details</h2>
+
+  <div class="meta-field">
+    <label for="storyTitleInput">Title</label>
+    <input id="storyTitleInput" class="meta-input" type="text" maxlength="120" placeholder="Story title" />
+  </div>
+  <div class="meta-field">
+    <label for="storyShelfSelect">Shelf</label>
+    <select id="storyShelfSelect" class="meta-input"></select>
+  </div>
+  <div class="sidebar-actions">
+    <button class="btn btn-primary" id="saveMetaBtn">Save Details</button>
+    <a class="btn btn-ghost" id="coverLink" href="cover-creation.html" style="text-decoration:none;text-align:center;">Edit Cover →</a>
+    <button class="btn btn-danger" id="deleteStoryBtn">Delete Story</button>
+  </div>
+
+  <hr class="sidebar-section-divider" />
+
+  <h2 class="panel-title">Notes</h2>
+  <textarea
+    id="notesArea"
+    class="notes-area"
+    placeholder="Jot down ideas, reminders, or plot threads…"
+  ></textarea>
+</aside>
 
 <!-- ── Modal: New Story ── -->
 <div class="overlay" id="newStoryModal" role="dialog" aria-modal="true" aria-labelledby="newStoryModalTitle">
@@ -431,10 +654,274 @@
     return opts.join("");
   }
 
-  /* ── Story selector ── */
+  /* ── Page model ──────────────────────────────────────────────
+   * Each page is: { id: string, content: string }
+   * BACKEND INTEGRATION POINT: serialize pages array to send to server
+   * ──────────────────────────────────────────────────────────── */
+  function createPage(id, content) {
+    return { id: id || ("page_" + Date.now() + "_" + Math.random().toString(36).slice(2)), content: content || "" };
+  }
+
+  /* Parse legacy manuscript string into pages array */
+  function manuscriptToPages(manuscript) {
+    if (!manuscript) return [createPage()];
+    // Split on the page-break marker we save
+    const parts = manuscript.split("\n---PAGE_BREAK---\n");
+    return parts.map((p, i) => createPage("page_" + i, p));
+  }
+
+  /* Serialize pages array back to a manuscript string for storage */
+  function pagesToManuscript(pages) {
+    // BACKEND INTEGRATION POINT: could also POST pages[] as JSON
+    return pages.map(p => p.content).join("\n---PAGE_BREAK---\n");
+  }
+
+  /* ── Constants ── */
+  const PAGE_HEIGHT_PX = 520; // matches .page-textarea height
+  // Approximate chars per page (used for auto-advance overflow check)
+  const APPROX_CHARS_PER_LINE = 55;
+  const LINES_PER_PAGE = Math.floor(PAGE_HEIGHT_PX / (0.97 * 16 * 1.75)); // font-size * line-height
+
+  /* ── State ── */
   let currentStory = null;
   let autoSaveTimer = null;
+  let pages = [];          // Array of page objects { id, content }
+  let viewOffset = 0;      // Which pair of pages is visible (0 = pages 0+1, 2 = pages 2+3 …)
+  let focusedSide = null;  // null | "left" | "right"
 
+  /* ── Overlay sidebar ── */
+  const sidebarOverlay  = document.getElementById("sidebarOverlay");
+  const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+  const SIDEBAR_KEY     = "wolfink_sidebar_open";
+
+  function openSidebar() {
+    sidebarOverlay.classList.add("open");
+    sidebarBackdrop.classList.add("open");
+    try { localStorage.setItem(SIDEBAR_KEY, "1"); } catch(e) {}
+  }
+
+  function closeSidebar() {
+    sidebarOverlay.classList.remove("open");
+    sidebarBackdrop.classList.remove("open");
+    try { localStorage.removeItem(SIDEBAR_KEY); } catch(e) {}
+  }
+
+  document.getElementById("detailsToggleBtn").addEventListener("click", () => {
+    sidebarOverlay.classList.contains("open") ? closeSidebar() : openSidebar();
+  });
+  document.getElementById("sidebarCloseBtn").addEventListener("click", closeSidebar);
+  sidebarBackdrop.addEventListener("click", closeSidebar);
+
+  // Restore sidebar state from localStorage
+  try {
+    if (localStorage.getItem(SIDEBAR_KEY)) openSidebar();
+  } catch(e) {}
+
+  /* ── Render pages ── */
+  function renderPages() {
+    const row = document.getElementById("pagesRow");
+    row.innerHTML = "";
+
+    const leftIdx  = viewOffset;
+    const rightIdx = viewOffset + 1;
+
+    const leftPage  = pages[leftIdx]  || null;
+    const rightPage = pages[rightIdx] || null;
+
+    if (leftPage)  row.appendChild(buildPageCard(leftPage,  leftIdx,  "left"));
+    if (rightPage) row.appendChild(buildPageCard(rightPage, rightIdx, "right"));
+
+    applyFocusClass();
+    updatePageNav();
+  }
+
+  function buildPageCard(page, pageIndex, side) {
+    const card = document.createElement("div");
+    card.className = "page-card";
+    card.dataset.side = side;
+    card.dataset.pageId = page.id;
+
+    const isGlobal1Indexed = pageIndex + 1;
+
+    card.innerHTML = `
+      <div class="page-card-header">
+        <span class="page-label">Page ${isGlobal1Indexed}</span>
+        <button class="page-focus-btn${focusedSide === side ? " active" : ""}" data-side="${side}" aria-label="Focus page ${isGlobal1Indexed}">
+          ${focusedSide === side ? "↙ Unfocus" : "⛶ Focus"}
+        </button>
+      </div>
+      <textarea
+        class="page-textarea"
+        data-page-id="${escHtml(page.id)}"
+        data-side="${side}"
+        placeholder="${pageIndex === 0 ? "Write your story here… It auto-saves as you type." : ""}"
+        aria-label="Page ${isGlobal1Indexed}"
+        spellcheck="true"
+      >${escHtml(page.content)}</textarea>
+      <div class="page-footer">— ${isGlobal1Indexed} —</div>
+    `;
+
+    // Focus button click
+    card.querySelector(".page-focus-btn").addEventListener("click", e => {
+      e.stopPropagation();
+      toggleFocus(side);
+    });
+
+    // Card click: if in focus mode and user clicks the non-focused card, switch focus
+    card.addEventListener("click", () => {
+      if (focusedSide && focusedSide !== side) {
+        toggleFocus(side);
+      }
+    });
+
+    // Textarea input: auto-save + overflow detection
+    const ta = card.querySelector(".page-textarea");
+    ta.addEventListener("input", () => {
+      page.content = ta.value;
+      scheduleAutoSave();
+      checkPageOverflow(ta, page, pageIndex);
+    });
+
+    return card;
+  }
+
+  /* ── Focus mode ── */
+  function applyFocusClass() {
+    const row = document.getElementById("pagesRow");
+    row.classList.remove("focus-left", "focus-right");
+    if (focusedSide === "left")  row.classList.add("focus-left");
+    if (focusedSide === "right") row.classList.add("focus-right");
+
+    // Mark focused card so CSS can allow scroll
+    document.querySelectorAll(".page-card").forEach(c => c.classList.remove("focus-active"));
+    if (focusedSide) {
+      const activeCard = document.querySelector(`.page-card[data-side="${focusedSide}"]`);
+      if (activeCard) activeCard.classList.add("focus-active");
+    }
+  }
+
+  function toggleFocus(side) {
+    if (focusedSide === side) {
+      focusedSide = null;
+    } else {
+      focusedSide = side;
+    }
+    applyFocusClass();
+    // Refresh focus button labels
+    document.querySelectorAll(".page-focus-btn").forEach(btn => {
+      const btnSide = btn.dataset.side;
+      btn.classList.toggle("active", btnSide === focusedSide);
+      btn.textContent = (btnSide === focusedSide) ? "↙ Unfocus" : "⛶ Focus";
+    });
+  }
+
+  /* ── Page overflow / auto-advance ── */
+  function checkPageOverflow(textarea, page, pageIndex) {
+    // Measure if content overflows the fixed-height textarea
+    const clone = document.createElement("textarea");
+    clone.style.cssText = "position:absolute;visibility:hidden;height:auto;width:" + textarea.offsetWidth + "px;font:inherit;padding:0.7rem 0.9rem;line-height:1.75;font-size:0.97rem;font-family:'Nunito',sans-serif;";
+    document.body.appendChild(clone);
+    clone.value = textarea.value;
+    const naturalHeight = clone.scrollHeight;
+    document.body.removeChild(clone);
+
+    if (naturalHeight > PAGE_HEIGHT_PX) {
+      // Split content: keep what fits, push remainder to next page
+      splitPageContent(textarea, page, pageIndex, naturalHeight);
+    }
+  }
+
+  function splitPageContent(textarea, page, pageIndex, naturalHeight) {
+    const fullText = page.content;
+    // Binary search for the split point where content fits
+    let lo = 0, hi = fullText.length;
+    while (lo < hi - 1) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (textFitsInPage(fullText.slice(0, mid), textarea)) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+
+    // Split at word boundary if possible
+    let splitAt = lo;
+    const spaceBack = fullText.lastIndexOf(" ", splitAt);
+    const newlineBack = fullText.lastIndexOf("\n", splitAt);
+    splitAt = Math.max(spaceBack, newlineBack, splitAt);
+    if (splitAt <= 0) splitAt = lo; // fallback to hard split
+
+    const currentContent  = fullText.slice(0, splitAt).trimEnd();
+    const overflowContent = fullText.slice(splitAt).trimStart();
+
+    page.content = currentContent;
+    textarea.value = currentContent;
+
+    // Ensure next page exists
+    if (!pages[pageIndex + 1]) {
+      pages.push(createPage());
+    }
+    // Prepend overflow to next page
+    pages[pageIndex + 1].content = overflowContent + (pages[pageIndex + 1].content ? "\n" + pages[pageIndex + 1].content : "");
+
+    scheduleAutoSave();
+
+    // Navigate to next page pair if needed
+    if (pageIndex + 1 >= viewOffset + 2) {
+      viewOffset = Math.floor((pageIndex + 1) / 2) * 2;
+    }
+    renderPages();
+
+    // Move cursor to start of next page textarea
+    const nextTA = document.querySelector(`.page-textarea[data-page-id="${escHtml(pages[pageIndex + 1].id)}"]`);
+    if (nextTA) {
+      nextTA.focus();
+      nextTA.setSelectionRange(overflowContent.length > 0 ? overflowContent.length : 0, overflowContent.length > 0 ? overflowContent.length : 0);
+    }
+  }
+
+  function textFitsInPage(text, referenceTA) {
+    const clone = document.createElement("textarea");
+    clone.style.cssText = "position:absolute;visibility:hidden;height:auto;width:" + referenceTA.offsetWidth + "px;font:inherit;padding:0.7rem 0.9rem;line-height:1.75;font-size:0.97rem;font-family:'Nunito',sans-serif;";
+    document.body.appendChild(clone);
+    clone.value = text;
+    const fits = clone.scrollHeight <= PAGE_HEIGHT_PX;
+    document.body.removeChild(clone);
+    return fits;
+  }
+
+  /* ── Page navigation ── */
+  function updatePageNav() {
+    const indicator = document.getElementById("pageIndicator");
+    const prevBtn   = document.getElementById("prevPagesBtn");
+    const nextBtn   = document.getElementById("nextPagesBtn");
+
+    const totalPages = pages.length;
+    const spread     = Math.floor(viewOffset / 2) + 1; // current spread number (1-based)
+    const totalSpreads = Math.ceil(totalPages / 2);
+
+    indicator.textContent = `Pages ${viewOffset + 1}–${Math.min(viewOffset + 2, totalPages)} of ${totalPages}`;
+    prevBtn.disabled = viewOffset <= 0;
+    nextBtn.disabled = viewOffset + 2 >= totalPages;
+  }
+
+  document.getElementById("prevPagesBtn").addEventListener("click", () => {
+    if (viewOffset > 0) {
+      viewOffset = Math.max(0, viewOffset - 2);
+      focusedSide = null;
+      renderPages();
+    }
+  });
+
+  document.getElementById("nextPagesBtn").addEventListener("click", () => {
+    if (viewOffset + 2 < pages.length) {
+      viewOffset += 2;
+      focusedSide = null;
+      renderPages();
+    }
+  });
+
+  /* ── Story selector ── */
   function populateStorySelector(selectId) {
     const stories = store.getStories();
     const sel = document.getElementById("storySelect");
@@ -461,15 +948,19 @@
     document.getElementById("workspace").style.display = "";
     document.getElementById("emptyState").style.display = "none";
     document.getElementById("manuscriptTitle").textContent = story.title;
-    document.getElementById("manuscriptArea").value = story.manuscript || "";
     document.getElementById("notesArea").value = story.notes || "";
     document.getElementById("storyTitleInput").value = story.title || "";
     document.getElementById("storyShelfSelect").innerHTML = buildShelfOptions(story.shelfId);
     document.getElementById("saveStatus").textContent = "";
 
     // Update cover link to carry story id
-    const coverLink = document.getElementById("coverLink");
-    coverLink.href = `cover-creation.html?id=${encodeURIComponent(id)}`;
+    document.getElementById("coverLink").href = `cover-creation.html?id=${encodeURIComponent(id)}`;
+
+    // BACKEND INTEGRATION POINT: fetch pages from server by story id instead of parsing manuscript
+    pages     = manuscriptToPages(story.manuscript);
+    viewOffset = 0;
+    focusedSide = null;
+    renderPages();
   }
 
   document.getElementById("storySelect").addEventListener("change", e => {
@@ -485,13 +976,19 @@
 
   function autoSave() {
     if (!currentStory) return;
-    currentStory.manuscript = document.getElementById("manuscriptArea").value;
+    // Sync any open textarea values back into pages array before saving
+    document.querySelectorAll(".page-textarea").forEach(ta => {
+      const pid = ta.dataset.pageId;
+      const p = pages.find(x => x.id === pid);
+      if (p) p.content = ta.value;
+    });
+    currentStory.manuscript = pagesToManuscript(pages);
     currentStory.notes = document.getElementById("notesArea").value;
+    // BACKEND INTEGRATION POINT: POST { storyId: currentStory.id, pages, notes } to /api/save
     store.saveStory(currentStory);
     document.getElementById("saveStatus").textContent = "Saved ✓";
   }
 
-  document.getElementById("manuscriptArea").addEventListener("input", scheduleAutoSave);
   document.getElementById("notesArea").addEventListener("input", scheduleAutoSave);
 
   /* ── Save meta (title + shelf) ── */
@@ -515,6 +1012,7 @@
     currentStory = null;
     populateStorySelector(null);
     loadStory(null);
+    closeSidebar();
   });
 
   /* ── New story modal ── */
@@ -545,10 +1043,21 @@
     closeNewStoryModal();
   });
 
-  /* ── Keyboard: close modals ── */
+  /* ── Keyboard: close modals / sidebar ── */
   document.addEventListener("keydown", e => {
     if (e.key !== "Escape") return;
-    if (document.getElementById("newStoryModal").classList.contains("open")) closeNewStoryModal();
+    if (document.getElementById("newStoryModal").classList.contains("open")) {
+      closeNewStoryModal();
+      return;
+    }
+    if (sidebarOverlay.classList.contains("open")) {
+      closeSidebar();
+      return;
+    }
+    if (focusedSide) {
+      focusedSide = null;
+      applyFocusClass();
+    }
   });
 
   /* ── Check for ?id= query param (deep-link from library) ── */
