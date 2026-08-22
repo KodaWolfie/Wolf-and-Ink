@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ground Zero | Wolf & Ink</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Nunito:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --bg: #2f1f17;
+      --bg-soft: #3a271d;
+      --card: #4a3226;
+      --text: #f6e7d8;
+      --muted: #e8cdb2;
+      --accent: #d08c60;
+      --accent-hover: #e5a276;
+      --border: #6b4a38;
+      --danger: #c0524a;
+      --danger-hover: #d96d63;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Nunito", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, #4b2f22 0%, var(--bg) 45%, #23150f 100%);
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1.25rem;
+    }
+
+    .container {
+      width: min(900px, 100%);
+    }
+
+    h1, h2, h3 {
+      font-family: "Cormorant Garamond", serif;
+      letter-spacing: 0.3px;
+      margin: 0;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.25rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .back-link:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    .page-header {
+      margin-bottom: 1.5rem;
+    }
+    .page-title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: #ffd9b8;
+      margin-bottom: 0.3rem;
+    }
+    .page-sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.4vw, 1.1rem);
+      line-height: 1.6;
+    }
+
+    /* ── Story selector bar ── */
+    .story-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(180deg, rgba(74,50,38,.85), rgba(58,39,29,.92));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+    }
+
+    .story-bar label {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .story-select {
+      flex: 1;
+      min-width: 160px;
+      background: rgba(20,10,6,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Nunito", sans-serif;
+      font-size: 0.95rem;
+      padding: 0.5rem 0.75rem;
+      outline: none;
+      transition: border-color 0.18s;
+      cursor: pointer;
+    }
+    .story-select:focus { border-color: var(--accent); }
+    .story-select option { background: #3a271d; }
+
+    .btn {
+      cursor: pointer;
+      font-family: "Nunito", sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 0.5rem 1.1rem;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+    .btn-ghost:hover { background: rgba(208,140,96,.12); color: var(--accent-hover); border-color: var(--accent); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    .btn-danger:hover { background: rgba(192,82,74,.15); color: var(--danger-hover); }
+
+    /* ── Writing workspace ── */
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+    }
+
+    @media (min-width: 700px) {
+      .workspace {
+        grid-template-columns: 1fr 280px;
+      }
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(74,50,38,.85), rgba(58,39,29,.92));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.4rem;
+    }
+
+    .panel-title {
+      font-size: 1.15rem;
+      color: var(--accent-hover);
+      margin-bottom: 0.85rem;
+    }
+
+    .manuscript-area {
+      width: 100%;
+      min-height: 480px;
+      background: rgba(20,10,6,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Nunito", sans-serif;
+      font-size: 1rem;
+      line-height: 1.75;
+      padding: 0.75rem 1rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .manuscript-area:focus { border-color: var(--accent); }
+
+    .notes-area {
+      width: 100%;
+      min-height: 200px;
+      background: rgba(20,10,6,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Nunito", sans-serif;
+      font-size: 0.93rem;
+      line-height: 1.6;
+      padding: 0.65rem 0.85rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .notes-area:focus { border-color: var(--accent); }
+
+    .save-status {
+      font-size: 0.82rem;
+      color: var(--muted);
+      opacity: 0.7;
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    .meta-field {
+      margin-bottom: 1rem;
+    }
+    .meta-field label {
+      display: block;
+      font-size: 0.84rem;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    .meta-input {
+      width: 100%;
+      background: rgba(20,10,6,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Nunito", sans-serif;
+      font-size: 0.92rem;
+      padding: 0.5rem 0.7rem;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .meta-input:focus { border-color: var(--accent); }
+    .meta-input option { background: #3a271d; }
+
+    .sidebar-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      margin-top: 1rem;
+    }
+    .sidebar-actions .btn {
+      width: 100%;
+      text-align: center;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      padding: 2.5rem 1rem;
+      text-align: center;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+    .empty-state p { margin: 0.4rem 0; }
+
+    /* ── Modal ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,10,6,.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .overlay.open { display: flex; }
+
+    .modal {
+      background: linear-gradient(160deg, #4a3226, #3a271d);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem;
+      width: min(440px, 100%);
+      box-shadow: 0 20px 50px rgba(0,0,0,.5);
+    }
+    .modal h2 {
+      font-size: 1.7rem;
+      color: #ffd9b8;
+      margin-bottom: 1.2rem;
+    }
+    .field { margin-bottom: 1rem; }
+    .field label {
+      display: block;
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      font-weight: 600;
+    }
+    .field input,
+    .field select {
+      width: 100%;
+      background: rgba(20,10,6,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Nunito", sans-serif;
+      font-size: 0.95rem;
+      padding: 0.55rem 0.75rem;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .field input:focus,
+    .field select:focus { border-color: var(--accent); }
+    .field select option { background: #3a271d; }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.6rem;
+      margin-top: 1.4rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <a class="back-link" href="index.html">← Back to home</a>
+  <header class="page-header">
+    <h1 class="page-title">Ground Zero</h1>
+    <p class="page-sub">Crack your knuckles. You've got a blank page, and it's yours to fill.</p>
+  </header>
+
+  <!-- Story selector bar -->
+  <div class="story-bar">
+    <label for="storySelect">Story:</label>
+    <select id="storySelect" class="story-select">
+      <option value="">— Select or create a story —</option>
+    </select>
+    <button class="btn btn-primary" id="newStoryBtn">+ New Story</button>
+  </div>
+
+  <!-- Writing workspace (hidden until a story is selected) -->
+  <div id="workspace" class="workspace" style="display:none;">
+    <!-- Manuscript column -->
+    <div class="panel">
+      <h2 class="panel-title" id="manuscriptTitle">Manuscript</h2>
+      <textarea
+        id="manuscriptArea"
+        class="manuscript-area"
+        placeholder="Write your story here… It auto-saves as you type."
+      ></textarea>
+      <p class="save-status" id="saveStatus"></p>
+    </div>
+
+    <!-- Sidebar -->
+    <div>
+      <div class="panel" style="margin-bottom:1.2rem;">
+        <h2 class="panel-title">Story Details</h2>
+        <div class="meta-field">
+          <label for="storyTitleInput">Title</label>
+          <input id="storyTitleInput" class="meta-input" type="text" maxlength="120" placeholder="Story title" />
+        </div>
+        <div class="meta-field">
+          <label for="storyShelfSelect">Shelf</label>
+          <select id="storyShelfSelect" class="meta-input"></select>
+        </div>
+        <div class="sidebar-actions">
+          <button class="btn btn-primary" id="saveMetaBtn">Save Details</button>
+          <a class="btn btn-ghost" id="coverLink" href="cover-creation.html" style="text-decoration:none;text-align:center;">Edit Cover →</a>
+          <button class="btn btn-danger" id="deleteStoryBtn">Delete Story</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Notes</h2>
+        <textarea
+          id="notesArea"
+          class="notes-area"
+          placeholder="Jot down ideas, reminders, or plot threads…"
+        ></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state shown when no story selected -->
+  <div id="emptyState" class="panel empty-state">
+    <p style="font-size:1.5rem;">🐺</p>
+    <p>Select a story above or create a new one to start writing.</p>
+  </div>
+</div>
+
+<!-- ── Modal: New Story ── -->
+<div class="overlay" id="newStoryModal" role="dialog" aria-modal="true" aria-labelledby="newStoryModalTitle">
+  <div class="modal">
+    <h2 id="newStoryModalTitle">New Story</h2>
+    <div class="field">
+      <label for="newStoryTitle">Title <span aria-hidden="true">*</span></label>
+      <input id="newStoryTitle" type="text" placeholder="Give your story a name" maxlength="120" />
+    </div>
+    <div class="field">
+      <label for="newStoryShelf">Shelf</label>
+      <select id="newStoryShelf"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelNewStoryBtn">Cancel</button>
+      <button class="btn btn-primary" id="confirmNewStoryBtn">Create Story</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared-store.js"></script>
+<script>
+  const store = window.WolfInkStore;
+
+  /* ── Helpers ── */
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function buildShelfOptions(selectedId) {
+    const shelves = store.getShelves();
+    const opts = shelves.map(s =>
+      `<option value="${escHtml(s.id)}" ${s.id === selectedId ? "selected" : ""}>${escHtml(s.name)}</option>`
+    );
+    opts.unshift(`<option value="" ${!selectedId ? "selected" : ""}>— Unsorted —</option>`);
+    return opts.join("");
+  }
+
+  /* ── Story selector ── */
+  let currentStory = null;
+  let autoSaveTimer = null;
+
+  function populateStorySelector(selectId) {
+    const stories = store.getStories();
+    const sel = document.getElementById("storySelect");
+    sel.innerHTML = '<option value="">— Select or create a story —</option>';
+    stories.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.title;
+      sel.appendChild(opt);
+    });
+    if (selectId) sel.value = selectId;
+  }
+
+  function loadStory(id) {
+    if (!id) {
+      currentStory = null;
+      document.getElementById("workspace").style.display = "none";
+      document.getElementById("emptyState").style.display = "";
+      return;
+    }
+    const story = store.getStory(id);
+    if (!story) return;
+    currentStory = story;
+    document.getElementById("workspace").style.display = "";
+    document.getElementById("emptyState").style.display = "none";
+    document.getElementById("manuscriptTitle").textContent = story.title;
+    document.getElementById("manuscriptArea").value = story.manuscript || "";
+    document.getElementById("notesArea").value = story.notes || "";
+    document.getElementById("storyTitleInput").value = story.title || "";
+    document.getElementById("storyShelfSelect").innerHTML = buildShelfOptions(story.shelfId);
+    document.getElementById("saveStatus").textContent = "";
+
+    // Update cover link to carry story id
+    const coverLink = document.getElementById("coverLink");
+    coverLink.href = `cover-creation.html?id=${encodeURIComponent(id)}`;
+  }
+
+  document.getElementById("storySelect").addEventListener("change", e => {
+    loadStory(e.target.value || null);
+  });
+
+  /* ── Auto-save manuscript & notes ── */
+  function scheduleAutoSave() {
+    clearTimeout(autoSaveTimer);
+    document.getElementById("saveStatus").textContent = "Unsaved changes…";
+    autoSaveTimer = setTimeout(autoSave, 1200);
+  }
+
+  function autoSave() {
+    if (!currentStory) return;
+    currentStory.manuscript = document.getElementById("manuscriptArea").value;
+    currentStory.notes = document.getElementById("notesArea").value;
+    store.saveStory(currentStory);
+    document.getElementById("saveStatus").textContent = "Saved ✓";
+  }
+
+  document.getElementById("manuscriptArea").addEventListener("input", scheduleAutoSave);
+  document.getElementById("notesArea").addEventListener("input", scheduleAutoSave);
+
+  /* ── Save meta (title + shelf) ── */
+  document.getElementById("saveMetaBtn").addEventListener("click", () => {
+    if (!currentStory) return;
+    const title = document.getElementById("storyTitleInput").value.trim();
+    if (!title) { document.getElementById("storyTitleInput").focus(); return; }
+    currentStory.title = title;
+    currentStory.shelfId = document.getElementById("storyShelfSelect").value || null;
+    store.saveStory(currentStory);
+    document.getElementById("manuscriptTitle").textContent = title;
+    populateStorySelector(currentStory.id);
+    document.getElementById("saveStatus").textContent = "Details saved ✓";
+  });
+
+  /* ── Delete story ── */
+  document.getElementById("deleteStoryBtn").addEventListener("click", () => {
+    if (!currentStory) return;
+    if (!confirm(`Delete "${currentStory.title}"? This cannot be undone.`)) return;
+    store.deleteStory(currentStory.id);
+    currentStory = null;
+    populateStorySelector(null);
+    loadStory(null);
+  });
+
+  /* ── New story modal ── */
+  function openNewStoryModal() {
+    document.getElementById("newStoryTitle").value = "";
+    document.getElementById("newStoryShelf").innerHTML = buildShelfOptions(null);
+    document.getElementById("newStoryModal").classList.add("open");
+    document.getElementById("newStoryTitle").focus();
+  }
+
+  function closeNewStoryModal() {
+    document.getElementById("newStoryModal").classList.remove("open");
+  }
+
+  document.getElementById("newStoryBtn").addEventListener("click", openNewStoryModal);
+  document.getElementById("cancelNewStoryBtn").addEventListener("click", closeNewStoryModal);
+  document.getElementById("newStoryModal").addEventListener("click", e => {
+    if (e.target === document.getElementById("newStoryModal")) closeNewStoryModal();
+  });
+
+  document.getElementById("confirmNewStoryBtn").addEventListener("click", () => {
+    const title = document.getElementById("newStoryTitle").value.trim();
+    if (!title) { document.getElementById("newStoryTitle").focus(); return; }
+    const shelfId = document.getElementById("newStoryShelf").value || null;
+    const story = store.createStory(title, shelfId);
+    populateStorySelector(story.id);
+    loadStory(story.id);
+    closeNewStoryModal();
+  });
+
+  /* ── Keyboard: close modals ── */
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if (document.getElementById("newStoryModal").classList.contains("open")) closeNewStoryModal();
+  });
+
+  /* ── Check for ?id= query param (deep-link from library) ── */
+  function init() {
+    populateStorySelector(null);
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (id) {
+      loadStory(id);
+      document.getElementById("storySelect").value = id;
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
