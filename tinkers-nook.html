@@ -344,6 +344,8 @@
       const paletteEntry = getNextPaletteEntry();
       const note = store.saveTinkerNote({
         paletteIndex: paletteEntry.index,
+        color: paletteEntry.fill,
+        tilt: paletteEntry.tilt,
         title: "",
         body: ""
       });
@@ -353,6 +355,8 @@
     function saveNote(note, titleValue, bodyValue) {
       note.title = titleValue;
       note.body = trimToWordLimit(bodyValue, BODY_WORD_LIMIT);
+      note.color = getPaletteEntry(note.paletteIndex).fill;
+      note.tilt = getPaletteEntry(note.paletteIndex).tilt;
       store.saveTinkerNote(note);
       return note.body;
     }

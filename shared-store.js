@@ -174,10 +174,6 @@
     return readTinkerStore().notes;
   }
 
-  function getTinkerNote(id) {
-    return readTinkerStore().notes.find(note => note.id === id) || null;
-  }
-
   function saveTinkerNote(note) {
     const store = readTinkerStore();
     const nextNote = { ...note };
@@ -238,7 +234,6 @@
     saveShelf,
     deleteShelf,
     getTinkerNotes,
-    getTinkerNote,
     saveTinkerNote,
     deleteTinkerNote,
     compressCover,
