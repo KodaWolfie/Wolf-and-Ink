@@ -41,7 +41,7 @@
     }
 
     .container {
-      width: min(900px, 100%);
+      width: min(1200px, 100%);
     }
 
     h1, h2, h3 {
@@ -150,7 +150,8 @@
 
     @media (min-width: 700px) {
       .workspace {
-        grid-template-columns: 1fr 280px;
+        grid-template-columns: 3fr 1fr;
+        align-items: start;
       }
     }
 
@@ -167,9 +168,19 @@
       margin-bottom: 0.85rem;
     }
 
+    /* Sidebar panels get slightly reduced padding and heading scale */
+    .sidebar .panel {
+      padding: 1rem 1.1rem;
+    }
+    .sidebar .panel-title {
+      font-size: 0.98rem;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+    }
+
     .manuscript-area {
       width: 100%;
-      min-height: 480px;
+      min-height: 600px;
       background: rgba(20,10,6,.4);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -186,7 +197,7 @@
 
     .notes-area {
       width: 100%;
-      min-height: 200px;
+      min-height: 160px;
       background: rgba(20,10,6,.4);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -343,7 +354,7 @@
     </div>
 
     <!-- Sidebar -->
-    <div>
+    <div class="sidebar">
       <div class="panel" style="margin-bottom:1.2rem;">
         <h2 class="panel-title">Story Details</h2>
         <div class="meta-field">
