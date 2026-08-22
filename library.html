@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Beast's Library | Wolf & Ink</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Nunito:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --bg: #2f1f17;
+      --bg-soft: #3a271d;
+      --card: #4a3226;
+      --text: #f6e7d8;
+      --muted: #e8cdb2;
+      --accent: #d08c60;
+      --accent-hover: #e5a276;
+      --border: #6b4a38;
+      --danger: #c0524a;
+      --danger-hover: #d96d63;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Nunito", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, #4b2f22 0%, var(--bg) 45%, #23150f 100%);
+      display: flex;
+      justify-content: center;
+      padding: 3rem 1.25rem;
+    }
+
+    .library {
+      width: min(860px, 100%);
+      background: linear-gradient(180deg, rgba(74,50,38,.85), rgba(58,39,29,.92));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 2.2rem 1.4rem;
+      box-shadow: 0 18px 40px rgba(0,0,0,.35);
+      backdrop-filter: blur(2px);
+    }
+
+    @media (min-width: 700px) {
+      .library { padding: 2.8rem; }
+    }
+
+    h1, h2, h3 {
+      font-family: "Cormorant Garamond", serif;
+      letter-spacing: 0.3px;
+      margin: 0;
+    }
+
+    .page-title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      color: #ffd9b8;
+      margin-bottom: 0.4rem;
+    }
+
+    .page-sub {
+      margin: 0 0 2rem;
+      font-size: clamp(1rem, 2.4vw, 1.15rem);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .back-link:hover { color: var(--accent-hover); text-decoration: underline; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .btn {
+      cursor: pointer;
+      font-family: "Nunito", sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 0.5rem 1.1rem;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+    .btn-ghost:hover { background: rgba(208,140,96,.12); color: var(--accent-hover); border-color: var(--accent); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    .btn-danger:hover { background: rgba(192,82,74,.15); color: var(--danger-hover); }
+
+    /* ── Modal overlay ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,10,6,.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .overlay.open { display: flex; }
+
+    .modal {
+      background: linear-gradient(160deg, #4a3226, #3a271d);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem;
+      width: min(440px, 100%);
+      box-shadow: 0 20px 50px rgba(0,0,0,.5);
+    }
+
+    .modal h2 {
+      font-size: 1.7rem;
+      color: #ffd9b8;
+      margin-bottom: 1.2rem;
+    }
+
+    .field { margin-bottom: 1rem; }
+    .field label {
+      display: block;
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+      font-weight: 600;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      background: rgba(20,10,6,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: "Nunito", sans-serif;
+      font-size: 0.95rem;
+      padding: 0.55rem 0.75rem;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus { border-color: var(--accent); }
+
+    .field textarea { resize: vertical; min-height: 72px; }
+
+    .field select option { background: #3a271d; }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.6rem;
+      margin-top: 1.4rem;
+    }
+
+    /* ── Shelves ── */
+    .shelves { display: grid; gap: 1.6rem; }
+
+    .shelf {
+      background: rgba(32,19,13,.35);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.2rem 1.2rem 1rem;
+    }
+
+    .shelf-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .shelf-meta { flex: 1; min-width: 0; }
+
+    .shelf-name {
+      font-size: clamp(1.3rem, 3vw, 1.8rem);
+      color: var(--accent-hover);
+    }
+
+    .shelf-desc {
+      margin: 0.2rem 0 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+      opacity: 0.85;
+    }
+
+    .shelf-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-shrink: 0;
+      padding-top: 0.15rem;
+    }
+
+    .shelf-actions .btn {
+      padding: 0.3rem 0.7rem;
+      font-size: 0.82rem;
+    }
+
+    /* ── Story cards ── */
+    .stories {
+      display: grid;
+      gap: 0.65rem;
+      min-height: 2rem;
+    }
+
+    .story-card {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(58,39,29,.55);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.9rem;
+      transition: border-color 0.18s;
+    }
+    .story-card:hover { border-color: var(--accent); }
+
+    .story-title {
+      flex: 1;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+
+    .story-card-actions {
+      display: flex;
+      gap: 0.35rem;
+      flex-shrink: 0;
+    }
+
+    .story-card-actions .btn {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.8rem;
+    }
+
+    /* ── Empty state ── */
+    .empty-hint {
+      color: var(--muted);
+      opacity: 0.55;
+      font-size: 0.9rem;
+      padding: 0.5rem 0 0.25rem;
+    }
+
+    /* ── Unsorted shelf special style ── */
+    .shelf-unsorted {
+      border-style: dashed;
+      border-color: rgba(107,74,56,.6);
+    }
+    .shelf-unsorted .shelf-name { color: var(--muted); }
+  </style>
+</head>
+<body>
+<main class="library">
+  <a class="back-link" href="index.html">← Back to home</a>
+  <header>
+    <h1 class="page-title">The Beast's Library</h1>
+    <p class="page-sub">Do you like it? It's yours, Princess. Shelves are yours to make, name, and fill.</p>
+  </header>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" id="openNewShelfBtn">+ New Shelf</button>
+    <button class="btn btn-ghost" id="openAddStoryBtn">+ Add Story</button>
+  </div>
+
+  <div class="shelves" id="shelvesList" aria-label="Your shelves"></div>
+</main>
+
+<!-- ── Modal: New / Edit Shelf ── -->
+<div class="overlay" id="shelfModal" role="dialog" aria-modal="true" aria-labelledby="shelfModalTitle">
+  <div class="modal">
+    <h2 id="shelfModalTitle">New Shelf</h2>
+    <div class="field">
+      <label for="shelfNameInput">Shelf name <span aria-hidden="true">*</span></label>
+      <input id="shelfNameInput" type="text" placeholder="e.g. Rainy-Day Reads" maxlength="80" />
+    </div>
+    <div class="field">
+      <label for="shelfDescInput">Description <span style="opacity:.6">(optional)</span></label>
+      <textarea id="shelfDescInput" placeholder="What kinds of stories live here?" maxlength="300"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelShelfBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveShelfBtn">Save Shelf</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Add / Edit Story ── -->
+<div class="overlay" id="storyModal" role="dialog" aria-modal="true" aria-labelledby="storyModalTitle">
+  <div class="modal">
+    <h2 id="storyModalTitle">Add a Story</h2>
+    <div class="field">
+      <label for="storyTitleInput">Story title <span aria-hidden="true">*</span></label>
+      <input id="storyTitleInput" type="text" placeholder="The name of your story" maxlength="120" />
+    </div>
+    <div class="field">
+      <label for="storyShelfSelect">Shelf</label>
+      <select id="storyShelfSelect"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelStoryBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveStoryBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Move Story ── -->
+<div class="overlay" id="moveModal" role="dialog" aria-modal="true" aria-labelledby="moveModalTitle">
+  <div class="modal">
+    <h2 id="moveModalTitle">Move Story</h2>
+    <p id="moveStoryName" style="color:var(--muted);margin:0 0 1rem;font-size:.95rem;"></p>
+    <div class="field">
+      <label for="moveShelfSelect">Move to shelf</label>
+      <select id="moveShelfSelect"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelMoveBtn">Cancel</button>
+      <button class="btn btn-primary" id="confirmMoveBtn">Move</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ─────────────────────────────────────────────
+     Data model (persisted in localStorage)
+     {
+       shelves: [{ id, name, desc }],   // ordered list; "unsorted" is virtual
+       stories: [{ id, title, shelfId }]  // shelfId null = unsorted
+     }
+  ───────────────────────────────────────────── */
+  const STORE_KEY = "beastsLibrary_v1";
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return { shelves: [], stories: [] };
+  }
+
+  function save(data) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch (_) {}
+  }
+
+  function uid() {
+    return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  }
+
+  let data = load();
+
+  /* ─── Render ─── */
+  function render() {
+    const container = document.getElementById("shelvesList");
+    container.innerHTML = "";
+
+    // User shelves
+    data.shelves.forEach(shelf => {
+      container.appendChild(renderShelf(shelf));
+    });
+
+    // Unsorted (always last)
+    container.appendChild(renderUnsortedShelf());
+  }
+
+  function renderShelf(shelf) {
+    const stories = data.stories.filter(s => s.shelfId === shelf.id);
+    const el = document.createElement("div");
+    el.className = "shelf";
+    el.dataset.shelfId = shelf.id;
+
+    el.innerHTML = `
+      <div class="shelf-header">
+        <div class="shelf-meta">
+          <h2 class="shelf-name">${escHtml(shelf.name)}</h2>
+          ${shelf.desc ? `<p class="shelf-desc">${escHtml(shelf.desc)}</p>` : ""}
+        </div>
+        <div class="shelf-actions">
+          <button class="btn btn-ghost edit-shelf-btn" data-id="${shelf.id}" title="Edit shelf">Edit</button>
+          <button class="btn btn-danger delete-shelf-btn" data-id="${shelf.id}" title="Delete shelf">Delete</button>
+        </div>
+      </div>
+      <div class="stories" id="stories-${shelf.id}">
+        ${stories.length === 0
+          ? '<p class="empty-hint">No stories here yet.</p>'
+          : stories.map(s => storyCardHtml(s)).join("")}
+      </div>`;
+
+    return el;
+  }
+
+  function renderUnsortedShelf() {
+    const stories = data.stories.filter(s => !s.shelfId);
+    const el = document.createElement("div");
+    el.className = "shelf shelf-unsorted";
+    el.dataset.shelfId = "__unsorted__";
+
+    el.innerHTML = `
+      <div class="shelf-header">
+        <div class="shelf-meta">
+          <h2 class="shelf-name">Unsorted</h2>
+          <p class="shelf-desc">Stories that haven't found a home yet.</p>
+        </div>
+      </div>
+      <div class="stories" id="stories-unsorted">
+        ${stories.length === 0
+          ? '<p class="empty-hint">Nothing here yet — add a story to get started.</p>'
+          : stories.map(s => storyCardHtml(s)).join("")}
+      </div>`;
+
+    return el;
+  }
+
+  function storyCardHtml(story) {
+    return `
+      <div class="story-card" data-story-id="${story.id}">
+        <span class="story-title">${escHtml(story.title)}</span>
+        <div class="story-card-actions">
+          <button class="btn btn-ghost move-story-btn" data-id="${story.id}" title="Move to another shelf">Move</button>
+          <button class="btn btn-ghost edit-story-btn" data-id="${story.id}" title="Edit story title">Edit</button>
+          <button class="btn btn-danger delete-story-btn" data-id="${story.id}" title="Remove story">Remove</button>
+        </div>
+      </div>`;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  /* ─── Shelf modal ─── */
+  let editingShelfId = null;
+
+  function openShelfModal(shelf) {
+    editingShelfId = shelf ? shelf.id : null;
+    document.getElementById("shelfModalTitle").textContent = shelf ? "Edit Shelf" : "New Shelf";
+    document.getElementById("shelfNameInput").value = shelf ? shelf.name : "";
+    document.getElementById("shelfDescInput").value = shelf ? shelf.desc || "" : "";
+    document.getElementById("shelfModal").classList.add("open");
+    document.getElementById("shelfNameInput").focus();
+  }
+
+  function closeShelfModal() {
+    document.getElementById("shelfModal").classList.remove("open");
+    editingShelfId = null;
+  }
+
+  document.getElementById("openNewShelfBtn").addEventListener("click", () => openShelfModal(null));
+  document.getElementById("cancelShelfBtn").addEventListener("click", closeShelfModal);
+  document.getElementById("shelfModal").addEventListener("click", e => {
+    if (e.target === document.getElementById("shelfModal")) closeShelfModal();
+  });
+
+  document.getElementById("saveShelfBtn").addEventListener("click", () => {
+    const name = document.getElementById("shelfNameInput").value.trim();
+    if (!name) { document.getElementById("shelfNameInput").focus(); return; }
+    const desc = document.getElementById("shelfDescInput").value.trim();
+    if (editingShelfId) {
+      const shelf = data.shelves.find(s => s.id === editingShelfId);
+      if (shelf) { shelf.name = name; shelf.desc = desc; }
+    } else {
+      data.shelves.push({ id: uid(), name, desc });
+    }
+    save(data);
+    render();
+    closeShelfModal();
+  });
+
+  /* ─── Story modal ─── */
+  let editingStoryId = null;
+
+  function buildShelfOptions(selectedId) {
+    const opts = data.shelves.map(s =>
+      `<option value="${s.id}" ${s.id === selectedId ? "selected" : ""}>${escHtml(s.name)}</option>`
+    );
+    opts.unshift(`<option value="" ${!selectedId ? "selected" : ""}>— Unsorted —</option>`);
+    return opts.join("");
+  }
+
+  function openStoryModal(story) {
+    editingStoryId = story ? story.id : null;
+    document.getElementById("storyModalTitle").textContent = story ? "Edit Story" : "Add a Story";
+    document.getElementById("storyTitleInput").value = story ? story.title : "";
+    document.getElementById("storyShelfSelect").innerHTML = buildShelfOptions(story ? story.shelfId : null);
+    document.getElementById("storyModal").classList.add("open");
+    document.getElementById("storyTitleInput").focus();
+  }
+
+  function closeStoryModal() {
+    document.getElementById("storyModal").classList.remove("open");
+    editingStoryId = null;
+  }
+
+  document.getElementById("openAddStoryBtn").addEventListener("click", () => openStoryModal(null));
+  document.getElementById("cancelStoryBtn").addEventListener("click", closeStoryModal);
+  document.getElementById("storyModal").addEventListener("click", e => {
+    if (e.target === document.getElementById("storyModal")) closeStoryModal();
+  });
+
+  document.getElementById("saveStoryBtn").addEventListener("click", () => {
+    const title = document.getElementById("storyTitleInput").value.trim();
+    if (!title) { document.getElementById("storyTitleInput").focus(); return; }
+    const shelfId = document.getElementById("storyShelfSelect").value || null;
+    if (editingStoryId) {
+      const story = data.stories.find(s => s.id === editingStoryId);
+      if (story) { story.title = title; story.shelfId = shelfId; }
+    } else {
+      data.stories.push({ id: uid(), title, shelfId });
+    }
+    save(data);
+    render();
+    closeStoryModal();
+  });
+
+  /* ─── Move modal ─── */
+  let movingStoryId = null;
+
+  function openMoveModal(storyId) {
+    movingStoryId = storyId;
+    const story = data.stories.find(s => s.id === storyId);
+    document.getElementById("moveStoryName").textContent = `"${story.title}"`;
+    document.getElementById("moveShelfSelect").innerHTML = buildShelfOptions(story.shelfId);
+    document.getElementById("moveModal").classList.add("open");
+    document.getElementById("moveShelfSelect").focus();
+  }
+
+  function closeMoveModal() {
+    document.getElementById("moveModal").classList.remove("open");
+    movingStoryId = null;
+  }
+
+  document.getElementById("cancelMoveBtn").addEventListener("click", closeMoveModal);
+  document.getElementById("moveModal").addEventListener("click", e => {
+    if (e.target === document.getElementById("moveModal")) closeMoveModal();
+  });
+
+  document.getElementById("confirmMoveBtn").addEventListener("click", () => {
+    const story = data.stories.find(s => s.id === movingStoryId);
+    if (story) {
+      story.shelfId = document.getElementById("moveShelfSelect").value || null;
+      save(data);
+      render();
+    }
+    closeMoveModal();
+  });
+
+  /* ─── Delegated clicks on shelves list ─── */
+  document.getElementById("shelvesList").addEventListener("click", e => {
+    const editShelf = e.target.closest(".edit-shelf-btn");
+    if (editShelf) {
+      const shelf = data.shelves.find(s => s.id === editShelf.dataset.id);
+      if (shelf) openShelfModal(shelf);
+      return;
+    }
+
+    const deleteShelf = e.target.closest(".delete-shelf-btn");
+    if (deleteShelf) {
+      const shelf = data.shelves.find(s => s.id === deleteShelf.dataset.id);
+      if (!shelf) return;
+      if (!confirm(`Delete shelf "${shelf.name}"? Stories on it will move to Unsorted.`)) return;
+      data.stories.forEach(s => { if (s.shelfId === shelf.id) s.shelfId = null; });
+      data.shelves = data.shelves.filter(s => s.id !== shelf.id);
+      save(data);
+      render();
+      return;
+    }
+
+    const moveStory = e.target.closest(".move-story-btn");
+    if (moveStory) { openMoveModal(moveStory.dataset.id); return; }
+
+    const editStory = e.target.closest(".edit-story-btn");
+    if (editStory) {
+      const story = data.stories.find(s => s.id === editStory.dataset.id);
+      if (story) openStoryModal(story);
+      return;
+    }
+
+    const deleteStory = e.target.closest(".delete-story-btn");
+    if (deleteStory) {
+      const story = data.stories.find(s => s.id === deleteStory.dataset.id);
+      if (!story) return;
+      if (!confirm(`Remove "${story.title}" from the library?`)) return;
+      data.stories = data.stories.filter(s => s.id !== deleteStory.dataset.id);
+      save(data);
+      render();
+    }
+  });
+
+  /* ─── Keyboard: close modals on Escape ─── */
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if (document.getElementById("shelfModal").classList.contains("open")) closeShelfModal();
+    if (document.getElementById("storyModal").classList.contains("open")) closeStoryModal();
+    if (document.getElementById("moveModal").classList.contains("open")) closeMoveModal();
+  });
+
+  /* ─── Initial render ─── */
+  render();
+</script>
+</body>
+</html>
