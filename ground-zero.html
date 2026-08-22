@@ -741,12 +741,12 @@
     card.dataset.side = side;
     card.dataset.pageId = page.id;
 
-    const isGlobal1Indexed = pageIndex + 1;
+    const pageNumber = pageIndex + 1;
 
     card.innerHTML = `
       <div class="page-card-header">
-        <span class="page-label">Page ${isGlobal1Indexed}</span>
-        <button class="page-focus-btn${focusedSide === side ? " active" : ""}" data-side="${side}" aria-label="Focus page ${isGlobal1Indexed}">
+        <span class="page-label">Page ${pageNumber}</span>
+        <button class="page-focus-btn${focusedSide === side ? " active" : ""}" data-side="${side}" aria-label="Focus page ${pageNumber}">
           ${focusedSide === side ? "↙ Unfocus" : "⛶ Focus"}
         </button>
       </div>
@@ -755,10 +755,10 @@
         data-page-id="${escHtml(page.id)}"
         data-side="${side}"
         placeholder="${pageIndex === 0 ? "Write your story here… It auto-saves as you type." : ""}"
-        aria-label="Page ${isGlobal1Indexed}"
+        aria-label="Page ${pageNumber}"
         spellcheck="true"
       >${escHtml(page.content)}</textarea>
-      <div class="page-footer">— ${isGlobal1Indexed} —</div>
+      <div class="page-footer">— ${pageNumber} —</div>
     `;
 
     // Focus button click
@@ -816,28 +816,38 @@
   }
 
   /* ── Page overflow / auto-advance ── */
-  function checkPageOverflow(textarea, page, pageIndex) {
-    // Measure if content overflows the fixed-height textarea
-    const clone = document.createElement("textarea");
-    clone.style.cssText = "position:absolute;visibility:hidden;height:auto;width:" + textarea.offsetWidth + "px;font:inherit;padding:0.7rem 0.9rem;line-height:1.75;font-size:0.97rem;font-family:'Nunito',sans-serif;";
-    document.body.appendChild(clone);
-    clone.value = textarea.value;
-    const naturalHeight = clone.scrollHeight;
-    document.body.removeChild(clone);
+  // Single persistent hidden clone for all height measurements (avoids repeated DOM insertions)
+  const _measureClone = document.createElement("textarea");
+  _measureClone.setAttribute("aria-hidden", "true");
+  _measureClone.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;height:auto;top:-9999px;left:-9999px;width:400px;padding:0.7rem 0.9rem;line-height:1.75;font-size:0.97rem;font-family:'Nunito',sans-serif;resize:none;";
+  document.body.appendChild(_measureClone);
 
-    if (naturalHeight > PAGE_HEIGHT_PX) {
-      // Split content: keep what fits, push remainder to next page
-      splitPageContent(textarea, page, pageIndex, naturalHeight);
-    }
+  function measureTextHeight(text, widthPx) {
+    _measureClone.style.width = widthPx + "px";
+    _measureClone.value = text;
+    return _measureClone.scrollHeight;
   }
 
-  function splitPageContent(textarea, page, pageIndex, naturalHeight) {
+  let _overflowTimer = null;
+  function checkPageOverflow(textarea, page, pageIndex) {
+    // Debounce: only run once the user pauses typing
+    clearTimeout(_overflowTimer);
+    _overflowTimer = setTimeout(() => {
+      const naturalHeight = measureTextHeight(textarea.value, textarea.offsetWidth);
+      if (naturalHeight > PAGE_HEIGHT_PX) {
+        splitPageContent(textarea, page, pageIndex);
+      }
+    }, 300);
+  }
+
+  function splitPageContent(textarea, page, pageIndex) {
     const fullText = page.content;
+    const width = textarea.offsetWidth;
     // Binary search for the split point where content fits
     let lo = 0, hi = fullText.length;
     while (lo < hi - 1) {
       const mid = Math.floor((lo + hi) / 2);
-      if (textFitsInPage(fullText.slice(0, mid), textarea)) {
+      if (measureTextHeight(fullText.slice(0, mid), width) <= PAGE_HEIGHT_PX) {
         lo = mid;
       } else {
         hi = mid;
@@ -861,7 +871,7 @@
     if (!pages[pageIndex + 1]) {
       pages.push(createPage());
     }
-    // Prepend overflow to next page
+    // Set next page content to overflow only (replace, not prepend, to avoid duplication on repeated splits)
     pages[pageIndex + 1].content = overflowContent + (pages[pageIndex + 1].content ? "\n" + pages[pageIndex + 1].content : "");
 
     scheduleAutoSave();
@@ -876,18 +886,9 @@
     const nextTA = document.querySelector(`.page-textarea[data-page-id="${escHtml(pages[pageIndex + 1].id)}"]`);
     if (nextTA) {
       nextTA.focus();
-      nextTA.setSelectionRange(overflowContent.length > 0 ? overflowContent.length : 0, overflowContent.length > 0 ? overflowContent.length : 0);
+      const cursorPos = overflowContent.length;
+      nextTA.setSelectionRange(cursorPos, cursorPos);
     }
-  }
-
-  function textFitsInPage(text, referenceTA) {
-    const clone = document.createElement("textarea");
-    clone.style.cssText = "position:absolute;visibility:hidden;height:auto;width:" + referenceTA.offsetWidth + "px;font:inherit;padding:0.7rem 0.9rem;line-height:1.75;font-size:0.97rem;font-family:'Nunito',sans-serif;";
-    document.body.appendChild(clone);
-    clone.value = text;
-    const fits = clone.scrollHeight <= PAGE_HEIGHT_PX;
-    document.body.removeChild(clone);
-    return fits;
   }
 
   /* ── Page navigation ── */
@@ -897,8 +898,6 @@
     const nextBtn   = document.getElementById("nextPagesBtn");
 
     const totalPages = pages.length;
-    const spread     = Math.floor(viewOffset / 2) + 1; // current spread number (1-based)
-    const totalSpreads = Math.ceil(totalPages / 2);
 
     indicator.textContent = `Pages ${viewOffset + 1}–${Math.min(viewOffset + 2, totalPages)} of ${totalPages}`;
     prevBtn.disabled = viewOffset <= 0;
